@@ -4,6 +4,11 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_bcrypt import Bcrypt
 
+# --- Path Setup ---
+APP_ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+TEMPLATE_DIR = os.path.join(APP_ROOT_DIR, 'templates')
+STATIC_DIR = os.path.join(APP_ROOT_DIR, 'static')
+
 db = SQLAlchemy()
 login_manager = LoginManager()
 bcrypt = Bcrypt()
@@ -88,6 +93,9 @@ app = Flask(__name__) # This is a temporary app instance for initial setup.
 
 # Let's go with a simplified setup first and refine to full factory if issues arise.
 # Keep global `app`, `db`, `bcrypt`, `login_manager`.
+
+# The global app instance used by run.py
+app = Flask(__name__, template_folder=TEMPLATE_DIR, static_folder=STATIC_DIR)
 
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your_secret_key_here_change_me_too')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///site.db')
