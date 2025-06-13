@@ -72,7 +72,10 @@ quiz_app/
 ## Running the Application
 
 1.  **Ensure your virtual environment is activated.**
-2.  **Navigate to the `quiz_app` root directory.**
+2.  **Navigate to the `quiz_app` root directory (the one containing `run.py` and the `main` package):**
+    ```bash
+    cd path/to/your/quiz_app
+    ```
 3.  **Run the Flask development server:**
     ```bash
     python run.py
@@ -84,7 +87,10 @@ The application will create a `site.db` SQLite database file in the `quiz_app` d
 ## Running Tests
 
 1.  **Ensure your virtual environment is activated.**
-2.  **Navigate to the `quiz_app` root directory.**
+2.  **Navigate to the `quiz_app` root directory (the one containing `run.py`, `test.sh` and the `main` package):**
+    ```bash
+    cd path/to/your/quiz_app
+    ```
 3.  **Execute the test script:**
     ```bash
     bash test.sh
