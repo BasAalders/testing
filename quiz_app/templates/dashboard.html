@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+    <h2>My Quizzes</h2>
+    {% if quizzes %}
+        <ul>
+            {% for quiz in quizzes %}
+                <li>
+                    <strong><a href="{{ url_for('quiz_detail', quiz_id=quiz.id) }}">{{ quiz.title }}</a></strong>
+                    (<small>{{ quiz.questions|length }} questions</small>)
+                    - <small>Created on: {{ quiz.created_at.strftime('%Y-%m-%d') }}</small>
+                    <br>
+                    {% if quiz.questions|length > 0 %}
+                        <a href="{{ url_for('play_quiz', quiz_id=quiz.id) }}">Play Quiz</a> |
+                    {% endif %}
+                    {% if current_user.is_authenticated and current_user.id == quiz.creator_id %}
+                        <a href="{{ url_for('edit_quiz', quiz_id=quiz.id) }}">Manage Quiz (Edit/Delete Questions)</a>
+                        <!-- Delete Quiz button could be here too, or only on quiz_detail -->
+                    {% else %}
+                        <!-- If user is not creator, they shouldn't see edit links -->
+                        <a href="{{ url_for('quiz_detail', quiz_id=quiz.id) }}">View Details</a>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>You haven't created any quizzes yet.</p>
+    {% endif %}
+    <p><a href="{{ url_for('create_quiz') }}">Create a New Quiz</a></p>
+{% endblock content %}

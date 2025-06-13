@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block content %}
+    <h2>Quiz Results: {{ attempt.quiz.title }}</h2>
+    <div class="results-summary">
+        <h3>Your Score: {{ attempt.score }} / {{ attempt.total_questions }}</h3>
+        <p>Attempt completed on: {{ attempt.completed_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+    </div>
+    <hr>
+
+    <h4>Detailed Results:</h4>
+    <ol class="results-list">
+        {% for question in questions %}
+            <li>
+                <p><strong>{{ loop.index }}. {{ question.question_text }}</strong></p>
+                {% set user_response = responses_dict.get(question.id) %}
+
+                <ul>
+                {% for option in question.options %}
+                    <li
+                        class="
+                        {% if option.is_correct %}correct-answer{% endif %}
+                        {% if user_response and user_response.selected_option_id == option.id and not option.is_correct %}user-answer-incorrect{% endif %}
+                        {% if user_response and user_response.selected_option_id == option.id and option.is_correct %}user-answer-correct{% endif %}
+                        "
+                    >
+                        {{ option.option_text }}
+                        {% if option.is_correct %} <span class="feedback-text">(Correct Answer)</span>{% endif %}
+                        {% if user_response and user_response.selected_option_id == option.id %} <span class="feedback-text">(Your Answer)</span>{% endif %}
+                    </li>
+                {% endfor %}
+                </ul>
+
+                {% if user_response %}
+                    {% if user_response.is_correct %}
+                        <p class="feedback-text" style="color: green;">Your answer was correct.</p>
+                    {% else %}
+                        <p class="feedback-text" style="color: red;">Your answer was incorrect.</p>
+                    {% endif %}
+                {% else %}
+                    <p class="feedback-text" style="color: orange;">Question not answered (or no response found).</p>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ol>
+    <hr>
+    <a href="{{ url_for('play_quiz', quiz_id=attempt.quiz_id) }}" class="button">Try Again</a>
+    <a href="{{ url_for('quiz_detail', quiz_id=attempt.quiz_id) }}" class="button">View Quiz Details</a>
+    <a href="{{ url_for('dashboard') }}" class="button">Back to My Quizzes</a>
+{% endblock content %}

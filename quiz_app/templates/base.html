@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title if title else "Quiz App" }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div id="branding">
+                <h1><a href="{{ url_for('home') }}">QuizApp</a></h1>
+            </div>
+            <nav>
+                <ul>
+                    <li class="{{ 'current' if request.endpoint == 'home' else '' }}"><a href="{{ url_for('home') }}">Home</a></li>
+                    {% if current_user.is_authenticated %}
+                        <li class="{{ 'current' if request.endpoint == 'dashboard' else '' }}"><a href="{{ url_for('dashboard') }}">My Quizzes</a></li>
+                        <li class="{{ 'current' if request.endpoint == 'create_quiz' else '' }}"><a href="{{ url_for('create_quiz') }}">Create Quiz</a></li>
+                        <li><a href="{{ url_for('logout') }}">Logout ({{ current_user.username }})</a></li>
+                    {% else %}
+                        <li class="{{ 'current' if request.endpoint == 'login' else '' }}"><a href="{{ url_for('login') }}">Login</a></li>
+                        <li class="{{ 'current' if request.endpoint == 'register' else '' }}"><a href="{{ url_for('register') }}">Register</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <p>&copy; 2023 Quiz App</p> <!-- Changed to static year -->
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block content %}
+    <h2>Playing: {{ quiz.title }}</h2>
+    <p>{{ quiz.description }}</p>
+    <hr>
+
+    {% if not questions %}
+        <p>This quiz has no questions. Please add some!</p>
+        <a href="{{ url_for('quiz_detail', quiz_id=quiz.id) }}">Back to Quiz Details</a>
+        Return
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('play_quiz', quiz_id=quiz.id) }}">
+        {{ form.hidden_tag() }} {# For CSRF token if enabled #}
+        <div class="quiz-play-area">
+        {% for question in questions %}
+            {% if question.question_type == 'multiple-choice' %}
+                {% set field = form['question_' + question.id|string] %}
+                {% if field %}
+                    <fieldset>
+                        <legend>{{ loop.index }}. {{ field.label.text }}</legend>
+                        {% for subfield in field %}
+                            <div>{{ subfield }} {{ subfield.label.text }}</div>
+                        {% endfor %}
+                        {% if field.errors %}
+                            <ul class="errors">
+                                {% for error in field.errors %}<li class="error-message">{{ error }}</li>{% endfor %}
+                            </ul>
+                        {% endif %}
+                    </fieldset>
+                    <br>
+                {% else %}
+                    <p>Error: Could not load question: {{ question.question_text }}</p>
+                {% endif %}
+            {% else %}
+                 <p>Question type '{{ question.question_type }}' not yet supported for playing.</p>
+            {% endif %}
+        {% endfor %}
+        </div>
+        {% if form.submit %}
+             {{ form.submit() }}
+        {% else %}
+            <input type="submit" value="Submit Answers">
+        {% endif %}
+    </form>
+
+{% endblock content %}

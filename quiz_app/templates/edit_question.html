@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block content %}
+    <h2>Edit Question for "{{ quiz.title }}"</h2>
+
+    <form method="POST" action="{{ url_for('edit_question', quiz_id=quiz.id, question_id=question.id) }}">
+        {{ form.hidden_tag() }}
+        <fieldset>
+            <legend>Question Details</legend>
+            <div>
+                {{ form.question_text.label }}<br>
+                {{ form.question_text(rows=3, cols=50) }}<br>
+                {% if form.question_text.errors %}
+                    {% for error in form.question_text.errors %}<span class="error-message">[{{ error }}]</span>{% endfor %}
+                {% endif %}
+            </div>
+
+            <h4>Options (Multiple Choice)</h4>
+            <p>Provide at least two options. Mark the correct one.</p>
+            <div>
+                {{ form.option1_text.label }}<br>
+                {{ form.option1_text(size=50) }}<br>
+                {% if form.option1_text.errors %}
+                    {% for error in form.option1_text.errors %}<span class="error-message">[{{ error }}]</span>{% endfor %}
+                {% endif %}
+            </div>
+            <div>
+                {{ form.option2_text.label }}<br>
+                {{ form.option2_text(size=50) }}<br>
+                {% if form.option2_text.errors %}
+                    {% for error in form.option2_text.errors %}<span class="error-message">[{{ error }}]</span>{% endfor %}
+                {% endif %}
+            </div>
+            <div>
+                {{ form.option3_text.label }} (Optional)<br>
+                {{ form.option3_text(size=50) }}<br>
+                {% if form.option3_text.errors %}
+                    {% for error in form.option3_text.errors %}<span class="error-message">[{{ error }}]</span>{% endfor %}
+                {% endif %}
+            </div>
+            <div>
+                {{ form.option4_text.label }} (Optional)<br>
+                {{ form.option4_text(size=50) }}<br>
+                {% if form.option4_text.errors %}
+                    {% for error in form.option4_text.errors %}<span class="error-message">[{{ error }}]</span>{% endfor %}
+                {% endif %}
+            </div>
+
+            <div>
+                {{ form.correct_option.label }}<br>
+                {% for subfield in form.correct_option %}
+                    {{ subfield }} {{ subfield.label }}<br>
+                {% endfor %}
+                {% if form.correct_option.errors %}
+                    {% for error in form.correct_option.errors %}<span class="error-message">[{{ error }}]</span>{% endfor %}
+                {% endif %}
+            </div>
+        </fieldset>
+        <div>
+            {{ form.submit(value='Save Question Changes') }}
+        </div>
+    </form>
+    <hr>
+    <a href="{{ url_for('edit_quiz', quiz_id=quiz.id) }}">Back to Edit Quiz</a>
+{% endblock content %}
