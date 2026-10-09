@@ -1,0 +1,13 @@
+{
+  "name": "Pocket Code",
+  "short_name": "Pocket Code",
+  "description": "A code editor made for phones.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#1b1d23",
+  "theme_color": "#15171c",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

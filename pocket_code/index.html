@@ -1,0 +1,1844 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="theme-color" content="#15171c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Pocket Code">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<!--ARTIFACT-START-->
+<title>Pocket Code</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a phone-first IDE. Title bar, tabs, full-bleed editor, a symbol key row above the
+   on-screen keyboard and a status bar. Explorer slides in from the left; preview is a full sheet. */
+:root {
+  --bg: #1b1d23;
+  --chrome: #15171c;
+  --panel: #20232a;
+  --raise: #2a2e37;
+  --line: #2f333d;
+  --fg: #d4d7de;
+  --muted: #8b919e;
+  --gutter: #5a6070;
+  --accent: #4c9bf0;
+  --accent-soft: rgba(76, 155, 240, .16);
+  --status: #2463b0;
+  --status-fg: #ffffff;
+  --sel: #2c4a72;
+  --activeline: #22252c;
+  --find: rgba(234, 180, 60, .34);
+  --danger: #f07070;
+  --warn: #e3b55a;
+  --ok: #62c48d;
+  --scrim: rgba(5, 6, 8, .55);
+  --shadow: 0 12px 40px rgba(0, 0, 0, .45);
+  --preview-bg: #ffffff;
+
+  --s-kw: #c586c0; --s-str: #e2a27a; --s-num: #b5cea8; --s-com: #6f9160;
+  --s-def: #dcd38a; --s-var: #9cd0f0; --s-tag: #6aa7e8; --s-attr: #9cd0f0;
+  --s-type: #4ec9b0; --s-atom: #6aa7e8; --s-meta: #b0b6c2; --s-bracket: #d4b44a;
+  --s-err: #f07070; --s-head: #6aa7e8; --s-link: #4ec9b0;
+
+  --ui: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --fs: 14px;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #ffffff; --chrome: #eef0f3; --panel: #f6f7f9; --raise: #e3e6eb; --line: #d8dce2;
+    --fg: #22252b; --muted: #5f6673; --gutter: #9aa1ad; --accent: #1f6fd1;
+    --accent-soft: rgba(31, 111, 209, .12); --status: #1f6fd1; --sel: #cfe0f7;
+    --activeline: #f2f5fa; --find: rgba(240, 190, 40, .45); --danger: #c63b3b; --warn: #9a6a00;
+    --ok: #23874f; --scrim: rgba(20, 24, 32, .35); --shadow: 0 12px 40px rgba(20, 30, 50, .18);
+    --s-kw: #a626a4; --s-str: #a3471a; --s-num: #0b7a55; --s-com: #4f7a3a; --s-def: #7a5e10;
+    --s-var: #1d4f91; --s-tag: #8a2121; --s-attr: #b03a2e; --s-type: #18797a; --s-atom: #1f5fbf;
+    --s-meta: #5f6673; --s-bracket: #8a6d00; --s-err: #c63b3b; --s-head: #1f5fbf; --s-link: #18797a;
+    color-scheme: light;
+  }
+}
+:root[data-theme="light"] {
+  --bg: #ffffff; --chrome: #eef0f3; --panel: #f6f7f9; --raise: #e3e6eb; --line: #d8dce2;
+  --fg: #22252b; --muted: #5f6673; --gutter: #9aa1ad; --accent: #1f6fd1;
+  --accent-soft: rgba(31, 111, 209, .12); --status: #1f6fd1; --sel: #cfe0f7;
+  --activeline: #f2f5fa; --find: rgba(240, 190, 40, .45); --danger: #c63b3b; --warn: #9a6a00;
+  --ok: #23874f; --scrim: rgba(20, 24, 32, .35); --shadow: 0 12px 40px rgba(20, 30, 50, .18);
+  --s-kw: #a626a4; --s-str: #a3471a; --s-num: #0b7a55; --s-com: #4f7a3a; --s-def: #7a5e10;
+  --s-var: #1d4f91; --s-tag: #8a2121; --s-attr: #b03a2e; --s-type: #18797a; --s-atom: #1f5fbf;
+  --s-meta: #5f6673; --s-bracket: #8a6d00; --s-err: #c63b3b; --s-head: #1f5fbf; --s-link: #18797a;
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; margin: 0; overflow: hidden; overscroll-behavior: none; }
+body { background: var(--bg); color: var(--fg); font: 14px/1.4 var(--ui); }
+button { font: inherit; color: inherit; }
+input, select { font: inherit; }
+button:focus-visible, input:focus-visible, .row:focus-visible, .tab:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: -2px;
+}
+[hidden] { display: none !important; }
+
+#app { position: fixed; left: 0; right: 0; top: 0; height: 100%; display: flex; flex-direction: column; background: var(--bg); }
+
+/* Title bar */
+.topbar {
+  display: flex; align-items: center; gap: 2px; flex: none;
+  padding: env(safe-area-inset-top, 0px) max(6px, env(safe-area-inset-right, 0px)) 0 max(6px, env(safe-area-inset-left, 0px));
+  min-height: calc(48px + env(safe-area-inset-top, 0px));
+  background: var(--chrome); border-bottom: 1px solid var(--line);
+}
+.icon-btn {
+  flex: none; display: inline-grid; place-items: center; width: 44px; height: 44px;
+  border: 0; border-radius: 10px; background: transparent; color: var(--fg); cursor: pointer;
+}
+.icon-btn:active { background: var(--raise); }
+.icon-btn svg { width: 21px; height: 21px; }
+.icon-btn.run { color: var(--ok); }
+.title {
+  flex: 1; min-width: 0; height: 36px; display: flex; align-items: center; gap: 8px;
+  margin: 0 4px; padding: 0 12px; border: 1px solid var(--line); border-radius: 9px;
+  background: var(--bg); color: var(--muted); cursor: pointer; text-align: left;
+}
+.title svg { width: 15px; height: 15px; flex: none; }
+.title span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
+.title b { color: var(--fg); font-weight: 500; }
+
+/* Tabs */
+.tabs { display: flex; flex: none; overflow-x: auto; background: var(--chrome); border-bottom: 1px solid var(--line); scrollbar-width: none; }
+.tabs::-webkit-scrollbar { display: none; }
+.tab {
+  flex: none; display: flex; align-items: center; gap: 6px; height: 38px; max-width: 200px;
+  padding: 0 2px 0 12px; border: 0; border-right: 1px solid var(--line); background: transparent;
+  color: var(--muted); font-size: 13px; cursor: pointer;
+}
+.tab .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tab.active { background: var(--bg); color: var(--fg); box-shadow: inset 0 2px 0 var(--accent); }
+.tab .x { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 6px; color: var(--muted); }
+.tab .x:active { background: var(--raise); }
+.tab .x svg { width: 14px; height: 14px; }
+.dot { width: 8px; height: 8px; border-radius: 2px; flex: none; background: var(--muted); }
+
+/* Editor */
+#editorWrap { position: relative; flex: 1; min-height: 0; }
+#editorWrap .CodeMirror { height: 100%; }
+.empty {
+  position: absolute; inset: 0; z-index: 8; display: grid; place-content: center; gap: 14px;
+  padding: 24px 16px; text-align: center; background: var(--bg); color: var(--muted);
+}
+.empty h2 { margin: 0; color: var(--fg); font-size: 17px; font-weight: 600; }
+.empty p { margin: 0; max-width: 32ch; }
+.empty .btns { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px;
+  padding: 0 14px; border: 1px solid var(--line); border-radius: 9px; background: var(--raise);
+  color: var(--fg); font-size: 14px; font-weight: 500; cursor: pointer;
+}
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--status-fg); }
+.btn.danger { background: var(--danger); border-color: var(--danger); color: var(--status-fg); }
+.btn:active { filter: brightness(.92); }
+.btn svg { width: 16px; height: 16px; }
+
+/* Find bar */
+.findbar { flex: none; display: grid; gap: 6px; padding: 6px 8px; background: var(--panel); border-top: 1px solid var(--line); }
+.findrow { display: flex; align-items: center; gap: 4px; }
+.findrow input {
+  flex: 1; min-width: 0; height: 36px; padding: 0 10px; border: 1px solid var(--line); border-radius: 8px;
+  background: var(--bg); color: var(--fg); font: 13px var(--mono);
+}
+.findrow input:focus { border-color: var(--accent); outline: none; }
+.findrow .count { flex: none; min-width: 52px; text-align: center; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.findrow .icon-btn { width: 36px; height: 36px; }
+.findrow .icon-btn svg { width: 18px; height: 18px; }
+.findrow .small { height: 36px; min-height: 36px; padding: 0 10px; font-size: 13px; }
+
+/* Symbol keys */
+.keys { flex: none; display: flex; gap: 5px; overflow-x: auto; padding: 6px 8px; background: var(--chrome); border-top: 1px solid var(--line); scrollbar-width: none; }
+.keys::-webkit-scrollbar { display: none; }
+.key {
+  flex: none; min-width: 40px; height: 38px; padding: 0 9px; border: 0; border-radius: 7px;
+  background: var(--raise); color: var(--fg); font: 500 15px var(--mono); cursor: pointer; user-select: none;
+  -webkit-user-select: none; touch-action: pan-x;
+}
+.key.wide { font: 500 12px var(--ui); letter-spacing: .02em; }
+.key.pressed { background: var(--accent); color: var(--status-fg); }
+
+/* Status bar */
+.statusbar {
+  flex: none; display: flex; align-items: center; gap: 2px; overflow: hidden;
+  min-height: calc(26px + env(safe-area-inset-bottom, 0px));
+  padding: 0 max(6px, env(safe-area-inset-right, 0px)) env(safe-area-inset-bottom, 0px) max(6px, env(safe-area-inset-left, 0px));
+  background: var(--status); color: var(--status-fg); font-size: 12px; font-variant-numeric: tabular-nums;
+}
+#app.kb .statusbar { padding-bottom: 0; min-height: 26px; }
+.statusbar button { height: 26px; padding: 0 7px; border: 0; background: transparent; color: inherit; font-size: 12px; white-space: nowrap; cursor: pointer; border-radius: 4px; }
+.statusbar button:active { background: rgba(255, 255, 255, .18); }
+.statusbar .spacer { flex: 1; }
+
+/* Explorer drawer */
+.drawer { position: fixed; inset: 0; z-index: 20; visibility: hidden; }
+.drawer.open { visibility: visible; }
+.drawer .scrim { position: absolute; inset: 0; background: var(--scrim); opacity: 0; transition: opacity .2s; }
+.drawer.open .scrim { opacity: 1; }
+.drawer .panel {
+  position: absolute; top: 0; bottom: 0; left: 0; width: min(86vw, 360px); display: flex; flex-direction: column;
+  padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); padding-left: env(safe-area-inset-left, 0px);
+  background: var(--panel); border-right: 1px solid var(--line); box-shadow: var(--shadow);
+  transform: translateX(-102%); transition: transform .22s ease;
+}
+.drawer.open .panel { transform: none; }
+.panel-head { display: flex; align-items: center; gap: 2px; padding: 6px 6px 6px 16px; border-bottom: 1px solid var(--line); }
+.eyebrow { flex: 1; margin: 0; color: var(--muted); font-size: 11px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; }
+.panel-head .icon-btn { width: 40px; height: 40px; }
+.panel-head .icon-btn svg { width: 19px; height: 19px; }
+.tree { flex: 1; overflow-y: auto; padding: 6px 0 16px; }
+.row {
+  display: flex; align-items: center; gap: 7px; width: 100%; min-height: 38px; padding: 0 4px 0 0;
+  border: 0; background: transparent; color: var(--fg); font-size: 14px; text-align: left; cursor: pointer;
+}
+.row:active { background: var(--raise); }
+.row.active { background: var(--accent-soft); }
+.row .chev { width: 16px; height: 16px; flex: none; color: var(--muted); transition: transform .15s; }
+.row.expanded .chev { transform: rotate(90deg); }
+.row .ficon { width: 17px; height: 17px; flex: none; }
+.row .label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row .more { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 8px; color: var(--muted); flex: none; }
+.row .more svg { width: 17px; height: 17px; }
+.panel-foot { padding: 10px 16px 14px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; line-height: 1.5; }
+.panel-foot strong { color: var(--fg); font-weight: 500; }
+
+/* Bottom sheets */
+.sheet-wrap { position: fixed; inset: 0; z-index: 40; display: flex; align-items: flex-end; justify-content: center; background: var(--scrim); }
+.sheet {
+  width: 100%; max-width: 520px; max-height: 88%; overflow-y: auto; display: flex; flex-direction: column; gap: 12px;
+  padding: 18px 16px calc(16px + env(safe-area-inset-bottom, 0px)); background: var(--panel);
+  border: 1px solid var(--line); border-bottom: 0; border-radius: 16px 16px 0 0; box-shadow: var(--shadow);
+}
+.sheet h3 { margin: 0; font-size: 16px; font-weight: 600; text-wrap: balance; }
+.sheet p { margin: 0; color: var(--muted); line-height: 1.5; }
+.sheet .field {
+  width: 100%; height: 44px; padding: 0 12px; border: 1px solid var(--line); border-radius: 10px;
+  background: var(--bg); color: var(--fg); font: 15px var(--mono);
+}
+.sheet .field:focus { outline: none; border-color: var(--accent); }
+.sheet .err { color: var(--danger); font-size: 13px; min-height: 18px; }
+.sheet .actions { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+.menu { display: flex; flex-direction: column; margin: 0 -8px; }
+.menu button {
+  display: flex; align-items: center; gap: 12px; min-height: 46px; padding: 0 12px; border: 0; border-radius: 10px;
+  background: transparent; color: var(--fg); font-size: 15px; text-align: left; cursor: pointer;
+}
+.menu button:active { background: var(--raise); }
+.menu button svg { width: 19px; height: 19px; color: var(--muted); flex: none; }
+.menu button.danger, .menu button.danger svg { color: var(--danger); }
+.setting { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 46px; }
+.setting > span { color: var(--fg); font-size: 15px; }
+.seg { display: inline-flex; padding: 3px; gap: 3px; border-radius: 10px; background: var(--bg); border: 1px solid var(--line); }
+.seg button { min-width: 44px; height: 34px; padding: 0 10px; border: 0; border-radius: 7px; background: transparent; color: var(--muted); font-size: 13px; cursor: pointer; }
+.seg button.on { background: var(--raise); color: var(--fg); font-weight: 500; }
+.seg output { display: inline-grid; place-items: center; min-width: 40px; font-variant-numeric: tabular-nums; }
+.sheet .note { font-size: 12.5px; }
+
+/* Command palette */
+.palette-wrap { position: fixed; inset: 0; z-index: 50; background: var(--scrim); }
+.palette {
+  position: absolute; left: 8px; right: 8px; top: calc(8px + env(safe-area-inset-top, 0px)); max-width: 620px; margin: 0 auto;
+  display: flex; flex-direction: column; overflow: hidden; background: var(--panel); border: 1px solid var(--line);
+  border-radius: 12px; box-shadow: var(--shadow);
+}
+.palette input {
+  height: 46px; margin: 8px; padding: 0 12px; border: 1px solid var(--accent); border-radius: 8px;
+  background: var(--bg); color: var(--fg); font: 15px var(--mono); outline: none;
+}
+.palette .list { max-height: min(52vh, 420px); overflow-y: auto; padding: 0 6px 6px; }
+.palette .item {
+  display: flex; align-items: baseline; gap: 10px; width: 100%; min-height: 42px; padding: 8px 10px; border: 0; border-radius: 8px;
+  background: transparent; color: var(--fg); font-size: 14px; text-align: left; cursor: pointer;
+}
+.palette .item.sel { background: var(--accent-soft); }
+.palette .item small { margin-left: auto; color: var(--muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.palette .hint { padding: 4px 16px 10px; color: var(--muted); font-size: 12px; }
+
+/* Preview sheet */
+.preview { position: fixed; inset: 0; z-index: 30; display: flex; flex-direction: column; background: var(--bg); }
+.preview-head {
+  display: flex; align-items: center; gap: 4px; flex: none;
+  padding: env(safe-area-inset-top, 0px) max(6px, env(safe-area-inset-right, 0px)) 0 max(6px, env(safe-area-inset-left, 0px));
+  min-height: calc(48px + env(safe-area-inset-top, 0px)); background: var(--chrome); border-bottom: 1px solid var(--line);
+}
+.ptabs { flex: 1; display: flex; gap: 4px; min-width: 0; }
+.ptab { height: 34px; padding: 0 14px; border: 0; border-radius: 8px; background: transparent; color: var(--muted); font-size: 14px; font-weight: 500; cursor: pointer; }
+.ptab.on { background: var(--raise); color: var(--fg); }
+.badge { display: inline-grid; place-items: center; min-width: 18px; height: 18px; margin-left: 6px; padding: 0 5px; border-radius: 9px; background: var(--danger); color: var(--status-fg); font-size: 11px; font-variant-numeric: tabular-nums; }
+.pbody { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+#frame { flex: 1; width: 100%; border: 0; background: var(--preview-bg); }
+.pfile { flex: none; padding: 5px 12px; color: var(--muted); font: 12px var(--mono); border-bottom: 1px solid var(--line); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.console { flex: 1; min-height: 0; overflow-y: auto; padding: 4px 0; font: 12.5px/1.5 var(--mono); }
+.console .ln { padding: 4px 12px; border-bottom: 1px solid var(--line); white-space: pre-wrap; word-break: break-word; }
+.console .ln.warn { color: var(--warn); }
+.console .ln.error { color: var(--danger); }
+.console .ln.result { color: var(--muted); }
+.console .ln.input { color: var(--accent); }
+.console .none { padding: 20px 16px; color: var(--muted); font-family: var(--ui); }
+.cin { flex: none; display: flex; align-items: center; gap: 6px; padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--line); background: var(--panel); }
+.cin span { color: var(--accent); font: 600 14px var(--mono); padding-left: 4px; }
+.cin input { flex: 1; min-width: 0; height: 38px; padding: 0 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--fg); font: 13px var(--mono); }
+.cin input:focus { outline: none; border-color: var(--accent); }
+
+.toast {
+  position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); z-index: 60; max-width: calc(100% - 32px);
+  padding: 10px 16px; border-radius: 10px; background: var(--fg); color: var(--bg); font-size: 13.5px; box-shadow: var(--shadow);
+  transform: translateX(-50%); transition: opacity .2s; pointer-events: none;
+}
+
+/* CodeMirror 5.65.16 core layout (inlined; MIT licensed) */
+.CodeMirror { position: relative; overflow: hidden; direction: ltr; }
+.CodeMirror-lines { cursor: text; min-height: 1px; padding: 6px 0; }
+.CodeMirror pre.CodeMirror-line, .CodeMirror pre.CodeMirror-line-like {
+  padding: 0 8px 0 6px; border-radius: 0; border-width: 0; background: transparent; font-family: inherit; font-size: inherit;
+  margin: 0; white-space: pre; word-wrap: normal; line-height: inherit; color: inherit; z-index: 2; position: relative;
+  overflow: visible; -webkit-tap-highlight-color: transparent; font-variant-ligatures: contextual;
+}
+.CodeMirror-wrap pre.CodeMirror-line, .CodeMirror-wrap pre.CodeMirror-line-like { word-wrap: break-word; white-space: pre-wrap; word-break: normal; }
+.CodeMirror-scroll { overflow: scroll !important; margin-bottom: -50px; margin-right: -50px; padding-bottom: 50px; height: 100%; outline: none; position: relative; z-index: 0; }
+.CodeMirror-sizer { position: relative; border-right: 50px solid transparent; }
+.CodeMirror-vscrollbar, .CodeMirror-hscrollbar, .CodeMirror-scrollbar-filler, .CodeMirror-gutter-filler { position: absolute; z-index: 6; display: none; outline: none; }
+.CodeMirror-vscrollbar { right: 0; top: 0; overflow-x: hidden; overflow-y: scroll; }
+.CodeMirror-hscrollbar { bottom: 0; left: 0; overflow-y: hidden; overflow-x: scroll; }
+.CodeMirror-scrollbar-filler { right: 0; bottom: 0; }
+.CodeMirror-gutter-filler { left: 0; bottom: 0; }
+.CodeMirror-gutters { position: absolute; left: 0; top: 0; min-height: 100%; z-index: 3; white-space: nowrap; }
+.CodeMirror-gutter { white-space: normal; height: 100%; display: inline-block; vertical-align: top; margin-bottom: -50px; }
+.CodeMirror-gutter-wrapper { position: absolute; z-index: 4; background: none !important; border: none !important; }
+.CodeMirror-gutter-background { position: absolute; top: 0; bottom: 0; z-index: 4; }
+.CodeMirror-gutter-elt { position: absolute; cursor: default; z-index: 4; }
+.CodeMirror-gutter-wrapper ::selection { background-color: transparent; }
+.CodeMirror-linenumber { padding: 0 6px 0 8px; min-width: 20px; text-align: right; white-space: nowrap; }
+.CodeMirror-linebackground { position: absolute; left: 0; right: 0; top: 0; bottom: 0; z-index: 0; }
+.CodeMirror-linewidget { position: relative; z-index: 2; padding: .1px; }
+.CodeMirror-rtl pre { direction: rtl; }
+.CodeMirror-code { outline: none; }
+.CodeMirror-scroll, .CodeMirror-sizer, .CodeMirror-gutter, .CodeMirror-gutters, .CodeMirror-linenumber { box-sizing: content-box; }
+.CodeMirror-measure { position: absolute; width: 100%; height: 0; overflow: hidden; visibility: hidden; }
+.CodeMirror-measure pre { position: static; }
+.CodeMirror-cursor { position: absolute; pointer-events: none; width: 0; border-right: none; }
+div.CodeMirror-cursors { visibility: hidden; position: relative; z-index: 3; }
+div.CodeMirror-dragcursors { visibility: visible; }
+.CodeMirror-focused div.CodeMirror-cursors { visibility: visible; }
+.cm-tab { display: inline-block; text-decoration: inherit; }
+.cm-tab-wrap-hack:after { content: ''; }
+span.CodeMirror-selectedtext { background: none; }
+.cm-force-border { padding-right: .1px; }
+.CodeMirror-composing { border-bottom: 2px solid; }
+
+/* Editor theme, driven by the tokens above */
+.cm-s-pocket.CodeMirror { background: var(--bg); color: var(--fg); font-family: var(--mono); font-size: var(--fs); line-height: 1.6; }
+.cm-s-pocket .CodeMirror-gutters { background: var(--bg); border-right: 0; }
+.cm-s-pocket .CodeMirror-linenumber { color: var(--gutter); }
+.cm-s-pocket .CodeMirror-activeline-gutter .CodeMirror-linenumber { color: var(--fg); }
+.cm-s-pocket .CodeMirror-activeline-background { background: var(--activeline); }
+.cm-s-pocket .CodeMirror-cursor { border-left: 2px solid var(--accent); }
+.cm-s-pocket .CodeMirror-selected, .cm-s-pocket.CodeMirror-focused .CodeMirror-selected { background: var(--sel); }
+.cm-s-pocket .CodeMirror-line::selection, .cm-s-pocket .CodeMirror-line > span::selection, .cm-s-pocket .CodeMirror-line > span > span::selection { background: var(--sel); }
+.cm-s-pocket .cm-keyword { color: var(--s-kw); }
+.cm-s-pocket .cm-string { color: var(--s-str); }
+.cm-s-pocket .cm-string-2 { color: var(--s-str); }
+.cm-s-pocket .cm-number { color: var(--s-num); }
+.cm-s-pocket .cm-comment { color: var(--s-com); font-style: italic; }
+.cm-s-pocket .cm-def { color: var(--s-def); }
+.cm-s-pocket .cm-variable { color: var(--s-var); }
+.cm-s-pocket .cm-variable-2 { color: var(--s-var); }
+.cm-s-pocket .cm-variable-3, .cm-s-pocket .cm-type { color: var(--s-type); }
+.cm-s-pocket .cm-property { color: var(--s-var); }
+.cm-s-pocket .cm-operator { color: var(--fg); }
+.cm-s-pocket .cm-atom, .cm-s-pocket .cm-builtin { color: var(--s-atom); }
+.cm-s-pocket .cm-meta, .cm-s-pocket .cm-qualifier { color: var(--s-meta); }
+.cm-s-pocket .cm-tag { color: var(--s-tag); }
+.cm-s-pocket .cm-attribute { color: var(--s-attr); }
+.cm-s-pocket .cm-bracket { color: var(--s-meta); }
+.cm-s-pocket .cm-header { color: var(--s-head); font-weight: 600; }
+.cm-s-pocket .cm-link, .cm-s-pocket .cm-url { color: var(--s-link); text-decoration: underline; }
+.cm-s-pocket .cm-quote { color: var(--s-com); }
+.cm-s-pocket .cm-strong { font-weight: 700; }
+.cm-s-pocket .cm-em { font-style: italic; }
+.cm-s-pocket .cm-error, .cm-s-pocket .cm-invalidchar { color: var(--s-err); }
+.cm-s-pocket .cm-hr { color: var(--muted); }
+.cm-s-pocket span.CodeMirror-matchingbracket { color: var(--s-bracket) !important; outline: 1px solid var(--line); }
+.cm-s-pocket span.CodeMirror-nonmatchingbracket { color: var(--s-err) !important; }
+.cm-s-pocket .CodeMirror-matchingtag { background: var(--accent-soft); }
+.cm-s-pocket .cm-searching { background: var(--find); border-radius: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .drawer .panel, .drawer .scrim, .row .chev, .toast { transition: none; }
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="topbar">
+    <button class="icon-btn" id="btnFiles" type="button" aria-label="Open file explorer" title="Explorer">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg>
+    </button>
+    <button class="title" id="btnTitle" type="button" aria-label="Search files and commands">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4-4"/></svg>
+      <span id="titleText"><b>Pocket Code</b></span>
+    </button>
+    <button class="icon-btn" id="btnFind" type="button" aria-label="Find and replace" title="Find">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h10M4 12h6M4 18h6"/><circle cx="16.5" cy="15.5" r="3.5"/><path d="m21 20-2-2"/></svg>
+    </button>
+    <button class="icon-btn run" id="btnRun" type="button" aria-label="Run preview" title="Run">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.4-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg>
+    </button>
+    <button class="icon-btn" id="btnMore" type="button" aria-label="Settings and more" title="More">
+      <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="12" cy="19" r="1.9"/></svg>
+    </button>
+  </header>
+
+  <nav class="tabs" id="tabs" aria-label="Open files"></nav>
+
+  <main id="editorWrap">
+    <div class="empty" id="empty" hidden>
+      <h2>No file open</h2>
+      <p>Open a file from the explorer, or start a new one.</p>
+      <div class="btns">
+        <button class="btn primary" id="emptyNew" type="button">New file</button>
+        <button class="btn" id="emptyFiles" type="button">Show files</button>
+      </div>
+    </div>
+  </main>
+
+  <section class="findbar" id="findbar" hidden aria-label="Find and replace">
+    <div class="findrow">
+      <input id="findInput" type="search" placeholder="Find" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Find">
+      <span class="count" id="findCount"></span>
+      <button class="icon-btn" id="findPrev" type="button" aria-label="Previous match"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 15 6-6 6 6"/></svg></button>
+      <button class="icon-btn" id="findNext" type="button" aria-label="Next match"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
+      <button class="icon-btn" id="findToggle" type="button" aria-label="Show replace"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h11l-3-3M20 17H9l3 3"/></svg></button>
+      <button class="icon-btn" id="findClose" type="button" aria-label="Close find"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    </div>
+    <div class="findrow" id="replaceRow" hidden>
+      <input id="replaceInput" type="text" placeholder="Replace with" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Replace with">
+      <button class="btn small" id="replaceOne" type="button">Replace</button>
+      <button class="btn small" id="replaceAll" type="button">All</button>
+    </div>
+  </section>
+
+  <div class="keys" id="keys" role="toolbar" aria-label="Coding keys"></div>
+
+  <footer class="statusbar">
+    <button id="stLang" type="button" title="Language">Plain Text</button>
+    <span class="spacer"></span>
+    <button id="stPos" type="button" title="Go to line">Ln 1, Col 1</button>
+    <button id="stIndent" type="button" title="Change indentation">Spaces: 2</button>
+    <button id="stSave" type="button" title="Save now">Saved</button>
+  </footer>
+</div>
+
+<div class="drawer" id="drawer" aria-hidden="true">
+  <div class="scrim" id="drawerScrim"></div>
+  <aside class="panel" aria-label="Explorer">
+    <div class="panel-head">
+      <p class="eyebrow">Explorer</p>
+      <button class="icon-btn" id="treeNewFile" type="button" aria-label="New file" title="New file"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M12 12v6M9 15h6"/></svg></button>
+      <button class="icon-btn" id="treeNewFolder" type="button" aria-label="New folder" title="New folder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M12 10v6M9 13h6"/></svg></button>
+      <button class="icon-btn" id="treeImport" type="button" aria-label="Import files" title="Import"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5"/><path d="M5 19h14"/></svg></button>
+      <button class="icon-btn" id="treeClose" type="button" aria-label="Close explorer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    </div>
+    <div class="tree" id="tree" role="tree"></div>
+    <div class="panel-foot" id="storageNote">Files save automatically <strong>in this browser</strong> on this phone. Export a ZIP or copy files to keep a backup.</div>
+  </aside>
+</div>
+
+<div class="preview" id="preview" hidden>
+  <div class="preview-head">
+    <div class="ptabs">
+      <button class="ptab on" id="ptPreview" type="button">Preview</button>
+      <button class="ptab" id="ptConsole" type="button">Console<span class="badge" id="errBadge" hidden>0</span></button>
+    </div>
+    <button class="icon-btn" id="pReload" type="button" aria-label="Run again" title="Run again"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v5h-5"/></svg></button>
+    <button class="icon-btn" id="pClose" type="button" aria-label="Back to editor" title="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  </div>
+  <div class="pbody" id="pPreviewBody">
+    <div class="pfile" id="pFile"></div>
+    <iframe id="frame" title="Preview" sandbox="allow-scripts allow-forms allow-modals allow-popups"></iframe>
+  </div>
+  <div class="pbody" id="pConsoleBody" hidden>
+    <div class="console" id="console"></div>
+    <form class="cin" id="consoleForm" autocomplete="off">
+      <span aria-hidden="true">&rsaquo;</span>
+      <input id="consoleInput" type="text" placeholder="Run JavaScript in the preview" autocapitalize="off" spellcheck="false" aria-label="Console input">
+      <button class="btn small" type="submit">Run</button>
+    </form>
+  </div>
+</div>
+
+<input type="file" id="fileInput" multiple hidden>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<!-- Starter project. Each textarea is one file; the app reads them on first launch. -->
+<div hidden id="samples">
+<textarea data-path="index.html">
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tip Splitter</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="card">
+    <h1>Tip Splitter</h1>
+    <label>Bill <input id="bill" type="number" value="48.50" step="0.01"></label>
+    <label>Tip % <input id="tip" type="number" value="18"></label>
+    <label>People <input id="people" type="number" value="3" min="1"></label>
+    <p class="result">Each person pays <strong id="each">$0.00</strong></p>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
+</textarea>
+<textarea data-path="style.css">
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  font-family: system-ui, sans-serif;
+  background: #eef3f8;
+  color: #1c2633;
+}
+
+.card {
+  width: min(90vw, 320px);
+  padding: 24px;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 8px 30px rgba(20, 40, 70, 0.12);
+}
+
+h1 {
+  margin: 0 0 16px;
+  font-size: 22px;
+}
+
+label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 10px 0;
+}
+
+input {
+  width: 110px;
+  padding: 8px;
+  font-size: 16px;
+  border: 1px solid #c8d2de;
+  border-radius: 8px;
+}
+
+.result {
+  margin: 18px 0 0;
+  font-size: 18px;
+}
+</textarea>
+<textarea data-path="app.js">
+const $ = (id) => document.getElementById(id);
+
+function update() {
+  const bill = parseFloat($("bill").value) || 0;
+  const tip = parseFloat($("tip").value) || 0;
+  const people = Math.max(1, parseInt($("people").value, 10) || 1);
+
+  const total = bill * (1 + tip / 100);
+  const each = total / people;
+
+  $("each").textContent = "$" + each.toFixed(2);
+  console.log(`Total $${total.toFixed(2)}, split ${people} ways`);
+}
+
+for (const id of ["bill", "tip", "people"]) {
+  $(id).addEventListener("input", update);
+}
+
+update();
+</textarea>
+<textarea data-path="scripts/hello.py">
+def greet(name: str) -> str:
+    return f"Hello, {name}!"
+
+
+if __name__ == "__main__":
+    for name in ["Ada", "Linus", "Grace"]:
+        print(greet(name))
+</textarea>
+<textarea data-path="README.md">
+# Pocket Code
+
+A code editor built for your phone.
+
+## Getting around
+
+- **Files button** (top left) opens the explorer. Tap the dots on a row to rename, duplicate or delete.
+- **Search bar** (top middle) jumps to any file. Type `>` for commands or `:42` to go to line 42.
+- **Play button** runs your HTML, CSS and JavaScript, and shows Markdown as a formatted page.
+- **Key row** above the keyboard has Tab, arrows, brackets and undo.
+
+## Running code
+
+Open `index.html` or any file next to it and tap Play.
+Linked `.css` and `.js` files from this project are pulled in automatically.
+`console.log` output shows up in the Console tab.
+
+Python files get syntax colors but can't run here yet.
+
+## Saving
+
+Everything saves automatically in this browser.
+Use **Export ZIP** in the menu for a backup.
+</textarea>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/lib/codemirror.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/xml/xml.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/javascript/javascript.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/css/css.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/htmlmixed/htmlmixed.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/jsx/jsx.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/python/python.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/markdown/markdown.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/clike/clike.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/shell/shell.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/sql/sql.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/yaml/yaml.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/jinja2/jinja2.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/addon/edit/closebrackets.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/addon/edit/matchbrackets.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/addon/fold/xml-fold.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/addon/edit/closetag.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/addon/selection/active-line.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/addon/search/searchcursor.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/addon/comment/comment.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var $ = function (sel, root) { return (root || document).querySelector(sel); };
+  var STORE_KEY = 'pocketcode.v1';
+  var root = document.documentElement;
+  var hostTheme = root.getAttribute('data-theme');
+
+  var isTop = (function () { try { return window.self === window.top; } catch (e) { return false; } })();
+  var canDownload = isTop; // Downloads are blocked when the page is embedded in a sandboxed frame.
+
+  if (!window.CodeMirror) {
+    document.getElementById('editorWrap').innerHTML =
+      '<div class="empty"><h2>The editor could not load</h2><p>Pocket Code needs an internet connection the first time it opens. Check your connection and reload.</p></div>';
+    return;
+  }
+
+  /* ---------- Icons ---------- */
+  var ICON = {
+    chev: '<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>',
+    folder: '<svg class="ficon" viewBox="0 0 24 24" fill="none" stroke="var(--s-bracket)" stroke-width="1.8" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>',
+    file: function (color) { return '<svg class="ficon" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.8" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>'; },
+    more: '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg>',
+    x: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>',
+    rename: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>',
+    copy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>',
+    trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>',
+    plusFile: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M12 12v6M9 15h6"/></svg>',
+    plusFolder: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M12 10v6M9 13h6"/></svg>',
+    open: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>',
+    import: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 19h14"/></svg>',
+    zip: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4M7 9l5-5 5 5M5 19h14"/></svg>',
+    reset: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.34-5.66"/><path d="M4 4v5h5"/></svg>',
+    cmd: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 8 4 4-4 4M11 17h8"/></svg>'
+  };
+
+  /* ---------- Languages ---------- */
+  var LANGS = [
+    [/\.(html?)$/i, 'htmlmixed', 'HTML', 'var(--s-tag)'],
+    [/\.(j2|jinja2?)$/i, 'jinja2', 'Jinja', 'var(--s-tag)'],
+    [/\.css$/i, 'css', 'CSS', 'var(--s-kw)'],
+    [/\.scss$/i, 'text/x-scss', 'SCSS', 'var(--s-kw)'],
+    [/\.less$/i, 'text/x-less', 'Less', 'var(--s-kw)'],
+    [/\.jsx$/i, 'jsx', 'JavaScript JSX', 'var(--s-def)'],
+    [/\.tsx$/i, { name: 'jsx', base: { name: 'javascript', typescript: true } }, 'TypeScript JSX', 'var(--s-atom)'],
+    [/\.(m?js|cjs)$/i, 'javascript', 'JavaScript', 'var(--s-def)'],
+    [/\.ts$/i, 'text/typescript', 'TypeScript', 'var(--s-atom)'],
+    [/\.json$/i, 'application/json', 'JSON', 'var(--s-def)'],
+    [/\.py$/i, 'python', 'Python', 'var(--s-type)'],
+    [/\.(md|markdown)$/i, 'markdown', 'Markdown', 'var(--s-var)'],
+    [/\.(c|h)$/i, 'text/x-csrc', 'C', 'var(--s-atom)'],
+    [/\.(cpp|cc|cxx|hpp)$/i, 'text/x-c++src', 'C++', 'var(--s-atom)'],
+    [/\.java$/i, 'text/x-java', 'Java', 'var(--s-str)'],
+    [/\.cs$/i, 'text/x-csharp', 'C#', 'var(--s-type)'],
+    [/\.kt$/i, 'text/x-kotlin', 'Kotlin', 'var(--s-kw)'],
+    [/\.(sh|bash|zsh)$/i, 'shell', 'Shell', 'var(--s-num)'],
+    [/\.sql$/i, 'sql', 'SQL', 'var(--s-str)'],
+    [/\.(ya?ml)$/i, 'yaml', 'YAML', 'var(--s-err)'],
+    [/\.(xml|svg)$/i, 'xml', 'XML', 'var(--s-tag)']
+  ];
+  function langFor(path) {
+    for (var i = 0; i < LANGS.length; i++) if (LANGS[i][0].test(path)) return LANGS[i];
+    return [null, null, 'Plain Text', 'var(--muted)'];
+  }
+
+  /* ---------- Paths ---------- */
+  function parentOf(p) { var i = p.lastIndexOf('/'); return i < 0 ? '' : p.slice(0, i); }
+  function baseOf(p) { return p.slice(p.lastIndexOf('/') + 1); }
+  function join(dir, name) { return dir ? dir + '/' + name : name; }
+  function cleanPath(p) {
+    p = String(p || '').trim().replace(/\\/g, '/').replace(/\/+/g, '/').replace(/^\/|\/$/g, '');
+    if (!p) return { error: 'Enter a name.' };
+    var parts = p.split('/');
+    for (var i = 0; i < parts.length; i++) {
+      if (parts[i] === '.' || parts[i] === '..') return { error: 'Names can’t be “.” or “..”.' };
+    }
+    return { path: p };
+  }
+  function resolvePath(dir, rel) {
+    if (!rel || /^([a-z]+:|\/\/|#|data:)/i.test(rel)) return null;
+    rel = rel.split('#')[0].split('?')[0];
+    var stack = rel.charAt(0) === '/' ? [] : (dir ? dir.split('/') : []);
+    rel.split('/').forEach(function (seg) {
+      if (!seg || seg === '.') return;
+      if (seg === '..') stack.pop(); else stack.push(seg);
+    });
+    return stack.join('/');
+  }
+  function byName(a, b) { return a.toLowerCase() < b.toLowerCase() ? -1 : a.toLowerCase() > b.toLowerCase() ? 1 : 0; }
+
+  /* ---------- State ---------- */
+  function readSamples() {
+    var files = {};
+    document.querySelectorAll('#samples textarea').forEach(function (t) { files[t.dataset.path] = t.value.replace(/\n$/, '') + '\n'; });
+    return files;
+  }
+  function defaultState() {
+    return {
+      files: readSamples(),
+      folders: ['scripts'],
+      expanded: { scripts: true },
+      open: ['index.html', 'style.css', 'app.js'],
+      active: 'app.js',
+      settings: { fontSize: 14, wrap: false, tabSize: 2, theme: 'system', keys: true }
+    };
+  }
+  var state = null;
+  try {
+    var raw = localStorage.getItem(STORE_KEY);
+    if (raw) state = JSON.parse(raw);
+  } catch (e) { state = null; }
+  if (!state || typeof state.files !== 'object' || !state.files) state = defaultState();
+  (function normalize() {
+    var d = defaultState().settings;
+    state.settings = Object.assign({}, d, state.settings || {});
+    state.folders = Array.isArray(state.folders) ? state.folders : [];
+    state.expanded = state.expanded || {};
+    state.open = (Array.isArray(state.open) ? state.open : []).filter(function (p) { return p in state.files; });
+    if (!(state.active in state.files)) state.active = state.open[0] || null;
+  })();
+
+  var saveTimer = null;
+  function save() {
+    clearTimeout(saveTimer); saveTimer = null;
+    try {
+      localStorage.setItem(STORE_KEY, JSON.stringify(state));
+      setSaveLabel('Saved');
+      return true;
+    } catch (e) {
+      setSaveLabel('Not saved');
+      return false;
+    }
+  }
+  function saveSoon() { setSaveLabel('Saving…'); clearTimeout(saveTimer); saveTimer = setTimeout(save, 500); }
+  window.addEventListener('pagehide', save);
+  document.addEventListener('visibilitychange', function () { if (document.hidden) save(); });
+
+  /* ---------- Editor ---------- */
+  var wrap = $('#editorWrap');
+  function tabKey(ed) {
+    if (ed.somethingSelected()) ed.indentSelection('add');
+    else ed.replaceSelection(new Array(ed.getOption('indentUnit') + 1).join(' '), 'end');
+  }
+  var cm = CodeMirror(wrap, {
+    value: '',
+    theme: 'pocket',
+    lineNumbers: true,
+    styleActiveLine: true,
+    matchBrackets: true,
+    autoCloseBrackets: true,
+    autoCloseTags: true,
+    indentUnit: state.settings.tabSize,
+    tabSize: state.settings.tabSize,
+    indentWithTabs: false,
+    lineWrapping: state.settings.wrap,
+    inputStyle: 'contenteditable',
+    spellcheck: false,
+    autocorrect: false,
+    autocapitalize: false,
+    extraKeys: {
+      'Tab': tabKey,
+      'Shift-Tab': 'indentLess',
+      'Ctrl-S': function () { save(); toast('Saved'); },
+      'Cmd-S': function () { save(); toast('Saved'); },
+      'Ctrl-F': function () { openFind(); },
+      'Cmd-F': function () { openFind(); },
+      'Ctrl-P': function () { openPalette(''); },
+      'Cmd-P': function () { openPalette(''); },
+      'Shift-Ctrl-P': function () { openPalette('>'); },
+      'Shift-Cmd-P': function () { openPalette('>'); },
+      'Ctrl-/': function (ed) { ed.toggleComment(); },
+      'Cmd-/': function (ed) { ed.toggleComment(); },
+      'Ctrl-Enter': function () { run(); },
+      'Cmd-Enter': function () { run(); },
+      'Ctrl-G': function () { openPalette(':'); }
+    }
+  });
+  var emptyDoc = CodeMirror.Doc('');
+  var docs = new Map();
+
+  function getDoc(path) {
+    var d = docs.get(path);
+    if (!d) {
+      d = CodeMirror.Doc(state.files[path] || '', langFor(path)[1]);
+      d.pocketPath = path;
+      d.on('change', function (doc) {
+        if (doc.pocketPath in state.files) { state.files[doc.pocketPath] = doc.getValue(); saveSoon(); }
+      });
+      docs.set(path, d);
+    }
+    return d;
+  }
+  function moveDoc(from, to) {
+    var d = docs.get(from);
+    if (!d) return;
+    docs.delete(from);
+    d.pocketPath = to;
+    docs.set(to, d);
+    var mode = langFor(to)[1];
+    if (cm.getDoc() === d) cm.setOption('mode', mode); else d.modeOption = mode;
+  }
+
+  function showEditor(path) {
+    if (!path) {
+      cm.swapDoc(emptyDoc);
+      cm.setOption('readOnly', 'nocursor');
+      $('#empty').hidden = false;
+    } else {
+      var d = getDoc(path);
+      cm.swapDoc(d);
+      cm.setOption('readOnly', false);
+      $('#empty').hidden = true;
+    }
+    if (!$('#findbar').hidden) highlightMatches();
+    updateStatus();
+    updateTitle();
+    requestAnimationFrame(function () { cm.refresh(); });
+  }
+
+  function openFile(path, opts) {
+    if (!(path in state.files)) return;
+    if (state.open.indexOf(path) < 0) state.open.push(path);
+    state.active = path;
+    var dir = parentOf(path);
+    while (dir) { state.expanded[dir] = true; dir = parentOf(dir); }
+    showEditor(path);
+    renderTabs();
+    renderTree();
+    saveSoon();
+    if (opts && opts.focus) cm.focus();
+  }
+  function closeTab(path) {
+    var i = state.open.indexOf(path);
+    if (i < 0) return;
+    state.open.splice(i, 1);
+    if (state.active === path) {
+      state.active = state.open[Math.min(i, state.open.length - 1)] || null;
+      showEditor(state.active);
+    }
+    renderTabs(); renderTree(); saveSoon();
+  }
+
+  /* ---------- Tabs ---------- */
+  function renderTabs() {
+    var el = $('#tabs');
+    el.textContent = '';
+    el.hidden = state.open.length === 0;
+    state.open.forEach(function (p) {
+      var t = document.createElement('div');
+      t.className = 'tab' + (p === state.active ? ' active' : '');
+      t.setAttribute('role', 'button');
+      t.tabIndex = 0;
+      t.title = p;
+      var dot = document.createElement('span');
+      dot.className = 'dot';
+      dot.style.background = langFor(p)[3];
+      var name = document.createElement('span');
+      name.className = 'name';
+      name.textContent = baseOf(p);
+      var x = document.createElement('span');
+      x.className = 'x';
+      x.setAttribute('role', 'button');
+      x.setAttribute('aria-label', 'Close ' + baseOf(p));
+      x.innerHTML = ICON.x;
+      x.addEventListener('click', function (e) { e.stopPropagation(); closeTab(p); });
+      t.append(dot, name, x);
+      t.addEventListener('click', function () { if (state.active !== p) openFile(p); });
+      t.addEventListener('keydown', function (e) { if (e.key === 'Enter') openFile(p); });
+      el.appendChild(t);
+      if (p === state.active) requestAnimationFrame(function () { t.scrollIntoView({ inline: 'nearest', block: 'nearest' }); });
+    });
+  }
+
+  /* ---------- Title and status ---------- */
+  function updateTitle() {
+    var t = $('#titleText');
+    t.textContent = '';
+    if (!state.active) { var b0 = document.createElement('b'); b0.textContent = 'Pocket Code'; t.appendChild(b0); return; }
+    var dir = parentOf(state.active);
+    if (dir) t.appendChild(document.createTextNode(dir + ' / '));
+    var b = document.createElement('b');
+    b.textContent = baseOf(state.active);
+    t.appendChild(b);
+  }
+  function updateStatus() {
+    var lang = state.active ? langFor(state.active)[2] : 'No file';
+    $('#stLang').textContent = lang;
+    var c = cm.getCursor();
+    var selLen = cm.getSelection().length;
+    $('#stPos').textContent = 'Ln ' + (c.line + 1) + ', Col ' + (c.ch + 1) + (selLen ? ' (' + selLen + ' selected)' : '');
+    $('#stIndent').textContent = 'Spaces: ' + state.settings.tabSize;
+  }
+  function setSaveLabel(s) { $('#stSave').textContent = s; }
+  cm.on('cursorActivity', updateStatus);
+
+  /* ---------- Explorer ---------- */
+  function allFolders() {
+    var set = new Set(state.folders);
+    Object.keys(state.files).forEach(function (p) {
+      var d = parentOf(p);
+      while (d) { set.add(d); d = parentOf(d); }
+    });
+    return set;
+  }
+  function renderTree() {
+    var tree = $('#tree');
+    tree.textContent = '';
+    var folders = Array.from(allFolders());
+    var files = Object.keys(state.files);
+    function walk(dir, depth) {
+      folders.filter(function (f) { return parentOf(f) === dir; }).sort(byName).forEach(function (f) {
+        var open = !!state.expanded[f];
+        tree.appendChild(makeRow(f, true, depth, open));
+        if (open) walk(f, depth + 1);
+      });
+      files.filter(function (f) { return parentOf(f) === dir; }).sort(byName).forEach(function (f) {
+        tree.appendChild(makeRow(f, false, depth, false));
+      });
+    }
+    walk('', 0);
+    if (!tree.childNodes.length) {
+      var p = document.createElement('p');
+      p.className = 'panel-foot';
+      p.style.borderTop = '0';
+      p.textContent = 'This project is empty. Tap the new file button above to start.';
+      tree.appendChild(p);
+    }
+  }
+  function makeRow(path, isFolder, depth, open) {
+    var row = document.createElement('div');
+    row.className = 'row' + (isFolder && open ? ' expanded' : '') + (!isFolder && path === state.active ? ' active' : '');
+    row.setAttribute('role', 'treeitem');
+    row.tabIndex = 0;
+    row.style.paddingLeft = (10 + depth * 16) + 'px';
+    if (isFolder) row.setAttribute('aria-expanded', String(open));
+    var lead = document.createElement('span');
+    lead.innerHTML = isFolder ? ICON.chev : '<svg class="chev" viewBox="0 0 24 24"></svg>';
+    var icon = document.createElement('span');
+    icon.innerHTML = isFolder ? ICON.folder : ICON.file(langFor(path)[3]);
+    var label = document.createElement('span');
+    label.className = 'label';
+    label.textContent = baseOf(path);
+    var more = document.createElement('span');
+    more.className = 'more';
+    more.setAttribute('role', 'button');
+    more.setAttribute('aria-label', 'Actions for ' + baseOf(path));
+    more.innerHTML = ICON.more;
+    more.addEventListener('click', function (e) { e.stopPropagation(); (isFolder ? folderActions : fileActions)(path); });
+    row.append(lead.firstChild, icon.firstChild, label, more);
+    function activate() {
+      if (isFolder) { state.expanded[path] = !state.expanded[path]; renderTree(); saveSoon(); }
+      else { openFile(path); closeDrawer(); }
+    }
+    row.addEventListener('click', activate);
+    row.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); activate(); } });
+    return row;
+  }
+
+  var drawer = $('#drawer');
+  function openDrawer() {
+    renderTree();
+    drawer.classList.add('open');
+    drawer.setAttribute('aria-hidden', 'false');
+    if (document.activeElement) document.activeElement.blur();
+  }
+  function closeDrawer() { drawer.classList.remove('open'); drawer.setAttribute('aria-hidden', 'true'); }
+
+  function fileActions(path) {
+    var items = [
+      { label: 'Open', icon: ICON.open, run: function () { openFile(path); closeDrawer(); } },
+      { label: 'Rename or move', icon: ICON.rename, run: function () { renameFile(path); } },
+      { label: 'Duplicate', icon: ICON.copy, run: function () { duplicateFile(path); } },
+      { label: 'Copy contents', icon: ICON.copy, run: function () { copyText(state.files[path], 'Copied ' + baseOf(path)); } },
+      { label: 'Delete', icon: ICON.trash, danger: true, run: function () { deleteFile(path); } }
+    ];
+    actionSheet(path, items);
+  }
+  function folderActions(path) {
+    actionSheet(path + '/', [
+      { label: 'New file here', icon: ICON.plusFile, run: function () { newFile(path); } },
+      { label: 'New folder here', icon: ICON.plusFolder, run: function () { newFolder(path); } },
+      { label: 'Import files here', icon: ICON.import, run: function () { importInto(path); } },
+      { label: 'Rename or move', icon: ICON.rename, run: function () { renameFolder(path); } },
+      { label: 'Delete folder', icon: ICON.trash, danger: true, run: function () { deleteFolder(path); } }
+    ]);
+  }
+
+  function nameCheck(full, oldPath) {
+    var c = cleanPath(full);
+    if (c.error) return c;
+    if (c.path !== oldPath && (c.path in state.files || allFolders().has(c.path))) return { error: 'Something named “' + c.path + '” already exists.' };
+    var d = parentOf(c.path);
+    while (d) { if (d in state.files) return { error: '“' + d + '” is a file, so it can’t hold other files.' }; d = parentOf(d); }
+    return c;
+  }
+
+  function newFile(dir) {
+    ask({
+      title: dir ? 'New file in ' + dir + '/' : 'New file',
+      placeholder: 'e.g. main.js or src/app.py',
+      ok: 'Create',
+      validate: function (v) { return nameCheck(join(dir, v)); }
+    }).then(function (p) {
+      if (!p) return;
+      state.files[p] = '';
+      openFile(p, { focus: true });
+      closeDrawer();
+      toast('Created ' + baseOf(p));
+    });
+  }
+  function newFolder(dir) {
+    ask({
+      title: dir ? 'New folder in ' + dir + '/' : 'New folder',
+      placeholder: 'e.g. components',
+      ok: 'Create',
+      validate: function (v) { return nameCheck(join(dir, v)); }
+    }).then(function (p) {
+      if (!p) return;
+      state.folders.push(p);
+      var d = p;
+      while (d) { state.expanded[d] = true; d = parentOf(d); }
+      renderTree(); saveSoon();
+    });
+  }
+  function renameFile(path) {
+    ask({
+      title: 'Rename or move',
+      hint: 'Type a new name. Add a folder in front, like src/, to move it.',
+      value: path,
+      ok: 'Rename',
+      selectBase: true,
+      validate: function (v) { return nameCheck(v, path); }
+    }).then(function (p) {
+      if (!p || p === path) return;
+      state.files[p] = state.files[path];
+      delete state.files[path];
+      moveDoc(path, p);
+      state.open = state.open.map(function (o) { return o === path ? p : o; });
+      if (state.active === path) state.active = p;
+      var d = parentOf(p);
+      while (d) { state.expanded[d] = true; d = parentOf(d); }
+      showEditor(state.active); renderTabs(); renderTree(); saveSoon();
+      toast('Renamed to ' + baseOf(p));
+    });
+  }
+  function renameFolder(path) {
+    ask({
+      title: 'Rename folder',
+      value: path,
+      ok: 'Rename',
+      selectBase: true,
+      validate: function (v) {
+        var c = nameCheck(v, path);
+        if (c.path && (c.path + '/').indexOf(path + '/') === 0 && c.path !== path) return { error: 'A folder can’t move inside itself.' };
+        return c;
+      }
+    }).then(function (p) {
+      if (!p || p === path) return;
+      var pre = path + '/';
+      var swap = function (x) { return x === path ? p : x.indexOf(pre) === 0 ? p + '/' + x.slice(pre.length) : x; };
+      Object.keys(state.files).forEach(function (f) {
+        if (f.indexOf(pre) === 0) { var n = swap(f); state.files[n] = state.files[f]; delete state.files[f]; moveDoc(f, n); }
+      });
+      state.folders = state.folders.map(swap);
+      var exp = {};
+      Object.keys(state.expanded).forEach(function (k) { exp[swap(k)] = state.expanded[k]; });
+      state.expanded = exp;
+      state.open = state.open.map(swap);
+      if (state.active) state.active = swap(state.active);
+      showEditor(state.active); renderTabs(); renderTree(); saveSoon();
+    });
+  }
+  function duplicateFile(path) {
+    var dir = parentOf(path), name = baseOf(path);
+    var dot = name.lastIndexOf('.');
+    var stem = dot > 0 ? name.slice(0, dot) : name, ext = dot > 0 ? name.slice(dot) : '';
+    var n = 1, p;
+    do { p = join(dir, stem + ' copy' + (n > 1 ? ' ' + n : '') + ext); n++; } while (p in state.files);
+    state.files[p] = state.files[path];
+    openFile(p); closeDrawer();
+    toast('Created ' + baseOf(p));
+  }
+  function deleteFile(path) {
+    confirmSheet({ title: 'Delete ' + baseOf(path) + '?', body: 'This can’t be undone.', ok: 'Delete' }).then(function (yes) {
+      if (!yes) return;
+      delete state.files[path];
+      docs.delete(path);
+      var wasOpen = state.open.indexOf(path) >= 0;
+      if (wasOpen) closeTab(path); else { renderTree(); saveSoon(); }
+      toast('Deleted ' + baseOf(path));
+    });
+  }
+  function deleteFolder(path) {
+    var pre = path + '/';
+    var inside = Object.keys(state.files).filter(function (f) { return f.indexOf(pre) === 0; });
+    confirmSheet({
+      title: 'Delete ' + baseOf(path) + '/?',
+      body: inside.length ? 'This deletes the folder and the ' + inside.length + (inside.length === 1 ? ' file' : ' files') + ' inside it. It can’t be undone.' : 'The folder is empty.',
+      ok: 'Delete folder'
+    }).then(function (yes) {
+      if (!yes) return;
+      inside.forEach(function (f) { delete state.files[f]; docs.delete(f); });
+      state.folders = state.folders.filter(function (f) { return f !== path && f.indexOf(pre) !== 0; });
+      state.open = state.open.filter(function (f) { return f in state.files; });
+      if (!(state.active in state.files)) { state.active = state.open[0] || null; showEditor(state.active); }
+      renderTabs(); renderTree(); saveSoon();
+      toast('Deleted ' + baseOf(path) + '/');
+    });
+  }
+
+  /* ---------- Import and export ---------- */
+  var importDir = '';
+  function importInto(dir) { importDir = dir || ''; $('#fileInput').value = ''; $('#fileInput').click(); }
+  function uniquePath(p) {
+    if (!(p in state.files)) return p;
+    var dir = parentOf(p), name = baseOf(p), dot = name.lastIndexOf('.');
+    var stem = dot > 0 ? name.slice(0, dot) : name, ext = dot > 0 ? name.slice(dot) : '';
+    for (var n = 2; ; n++) { var q = join(dir, stem + '-' + n + ext); if (!(q in state.files)) return q; }
+  }
+  $('#fileInput').addEventListener('change', function (e) {
+    var list = Array.from(e.target.files || []);
+    var added = [], skipped = 0;
+    var tasks = list.map(function (file) {
+      if (/\.zip$/i.test(file.name) && window.JSZip) {
+        return JSZip.loadAsync(file).then(function (zip) {
+          var entries = [];
+          zip.forEach(function (rel, entry) { if (!entry.dir && !/(^|\/)(__MACOSX|\.git)\//.test(rel)) entries.push([rel, entry]); });
+          return Promise.all(entries.map(function (pair) {
+            return pair[1].async('string').then(function (txt) {
+              var c = cleanPath(join(importDir, pair[0]));
+              if (c.error || txt.indexOf('\u0000') >= 0) { skipped++; return; }
+              var p = uniquePath(c.path); state.files[p] = txt; added.push(p);
+            });
+          }));
+        });
+      }
+      return file.text().then(function (txt) {
+        if (txt.indexOf('\u0000') >= 0) { skipped++; return; }
+        var c = cleanPath(join(importDir, file.name));
+        if (c.error) { skipped++; return; }
+        var p = uniquePath(c.path); state.files[p] = txt; added.push(p);
+      });
+    });
+    Promise.all(tasks).then(function () {
+      if (added.length) openFile(added[0]);
+      renderTree(); saveSoon();
+      var msg = added.length ? 'Imported ' + added.length + (added.length === 1 ? ' file' : ' files') : 'Nothing imported';
+      if (skipped) msg += ', skipped ' + skipped + ' that weren’t text';
+      toast(msg);
+    }).catch(function () { toast('That file couldn’t be read.'); });
+  });
+
+  function exportZip() {
+    if (!canDownload) { toast('Downloads are blocked in this view. Use Copy contents on each file instead.'); return; }
+    if (!window.JSZip) { toast('The ZIP tool didn’t load. Check your connection and reload.'); return; }
+    var zip = new JSZip();
+    Object.keys(state.files).forEach(function (p) { zip.file(p, state.files[p]); });
+    state.folders.forEach(function (f) { zip.folder(f); });
+    zip.generateAsync({ type: 'blob' }).then(function (blob) {
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url; a.download = 'pocket-code-project.zip';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 5000);
+      toast('Downloading pocket-code-project.zip');
+    });
+  }
+  function copyText(text, msg) {
+    var done = function () { toast(msg || 'Copied'); };
+    var fallback = function () {
+      var ta = document.createElement('textarea');
+      ta.value = text; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      var ok = false;
+      try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+      ta.remove();
+      if (ok) done(); else toast('Copy is blocked here. Select the text in the editor and copy it instead.');
+    };
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, fallback);
+      else fallback();
+    } catch (e) { fallback(); }
+  }
+
+  /* ---------- Sheets ---------- */
+  var sheetOpen = null;
+  function makeSheet(build) {
+    closeSheet();
+    var wrapEl = document.createElement('div');
+    wrapEl.className = 'sheet-wrap';
+    var sheet = document.createElement('div');
+    sheet.className = 'sheet';
+    sheet.setAttribute('role', 'dialog');
+    sheet.setAttribute('aria-modal', 'true');
+    wrapEl.appendChild(sheet);
+    var api = { el: sheet, onClose: null };
+    wrapEl.addEventListener('click', function (e) { if (e.target === wrapEl) closeSheet(); });
+    build(sheet, api);
+    document.body.appendChild(wrapEl);
+    sheetOpen = { wrap: wrapEl, api: api };
+    return api;
+  }
+  function closeSheet() {
+    if (!sheetOpen) return;
+    var s = sheetOpen; sheetOpen = null;
+    s.wrap.remove();
+    if (s.api.onClose) s.api.onClose();
+  }
+  function h(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+
+  function actionSheet(title, items) {
+    makeSheet(function (sheet) {
+      sheet.appendChild(h('h3', null, title));
+      var menu = h('div', 'menu');
+      items.forEach(function (it) {
+        if (!it) return;
+        var b = h('button', it.danger ? 'danger' : null);
+        b.type = 'button';
+        b.innerHTML = it.icon || '';
+        b.appendChild(document.createTextNode(it.label));
+        b.addEventListener('click', function () { closeSheet(); it.run(); });
+        menu.appendChild(b);
+      });
+      sheet.appendChild(menu);
+    });
+  }
+  function ask(o) {
+    return new Promise(function (resolve) {
+      var result = null;
+      var api = makeSheet(function (sheet) {
+        sheet.appendChild(h('h3', null, o.title));
+        if (o.hint) sheet.appendChild(h('p', null, o.hint));
+        var input = h('input', 'field');
+        input.id = 'askField';
+        input.type = 'text';
+        input.autocomplete = 'off';
+        input.setAttribute('autocapitalize', 'off');
+        input.spellcheck = false;
+        input.placeholder = o.placeholder || '';
+        input.value = o.value || '';
+        var err = h('div', 'err');
+        var actions = h('div', 'actions');
+        var cancel = h('button', 'btn', 'Cancel'); cancel.type = 'button';
+        var ok = h('button', 'btn primary', o.ok || 'OK'); ok.type = 'button';
+        actions.append(cancel, ok);
+        var form = h('form');
+        form.style.display = 'contents';
+        form.append(input, err, actions);
+        sheet.appendChild(form);
+        var submit = function (e) {
+          if (e) e.preventDefault();
+          var r = o.validate ? o.validate(input.value) : { path: input.value };
+          if (r.error) { err.textContent = r.error; input.focus(); return; }
+          result = r.path; closeSheet();
+        };
+        form.addEventListener('submit', submit);
+        ok.addEventListener('click', submit);
+        cancel.addEventListener('click', closeSheet);
+        input.addEventListener('input', function () { err.textContent = ''; });
+        setTimeout(function () {
+          input.focus();
+          if (o.selectBase && o.value) {
+            var b = o.value.lastIndexOf('/') + 1, dot = o.value.lastIndexOf('.');
+            input.setSelectionRange(b, dot > b ? dot : o.value.length);
+          }
+        }, 30);
+      });
+      api.onClose = function () { resolve(result); };
+    });
+  }
+  function confirmSheet(o) {
+    return new Promise(function (resolve) {
+      var yes = false;
+      var api = makeSheet(function (sheet) {
+        sheet.appendChild(h('h3', null, o.title));
+        if (o.body) sheet.appendChild(h('p', null, o.body));
+        var actions = h('div', 'actions');
+        var cancel = h('button', 'btn', 'Cancel'); cancel.type = 'button';
+        var ok = h('button', 'btn danger', o.ok || 'OK'); ok.type = 'button';
+        cancel.addEventListener('click', closeSheet);
+        ok.addEventListener('click', function () { yes = true; closeSheet(); });
+        actions.append(cancel, ok);
+        sheet.appendChild(actions);
+      });
+      api.onClose = function () { resolve(yes); };
+    });
+  }
+
+  /* ---------- Settings ---------- */
+  function applySettings() {
+    var s = state.settings;
+    root.style.setProperty('--fs', s.fontSize + 'px');
+    cm.setOption('lineWrapping', s.wrap);
+    cm.setOption('indentUnit', s.tabSize);
+    cm.setOption('tabSize', s.tabSize);
+    $('#keys').hidden = !s.keys;
+    if (s.theme === 'system') { if (hostTheme) root.setAttribute('data-theme', hostTheme); else root.removeAttribute('data-theme'); }
+    else root.setAttribute('data-theme', s.theme);
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', getComputedStyle(root).getPropertyValue('--chrome').trim() || '#15171c');
+    updateStatus();
+    requestAnimationFrame(function () { cm.refresh(); });
+  }
+  function setSetting(k, v) { state.settings[k] = v; applySettings(); saveSoon(); }
+  function setFont(delta) { setSetting('fontSize', Math.max(10, Math.min(24, state.settings.fontSize + delta))); toast('Text size ' + state.settings.fontSize); }
+
+  function openSettings() {
+    makeSheet(function (sheet) {
+      sheet.appendChild(h('h3', null, 'Settings'));
+      function seg(label, options, current, onPick) {
+        var row = h('div', 'setting');
+        row.appendChild(h('span', null, label));
+        var g = h('div', 'seg');
+        options.forEach(function (op) {
+          var b = h('button', op[0] === current ? 'on' : null, op[1]);
+          b.type = 'button';
+          b.addEventListener('click', function () {
+            onPick(op[0]);
+            g.querySelectorAll('button').forEach(function (x) { x.classList.remove('on'); });
+            b.classList.add('on');
+          });
+          g.appendChild(b);
+        });
+        row.appendChild(g);
+        sheet.appendChild(row);
+      }
+      var fontRow = h('div', 'setting');
+      fontRow.appendChild(h('span', null, 'Text size'));
+      var fg = h('div', 'seg');
+      var minus = h('button', null, 'A−'); minus.type = 'button';
+      var out = h('output', null, String(state.settings.fontSize));
+      var plus = h('button', null, 'A+'); plus.type = 'button';
+      minus.addEventListener('click', function () { setFont(-1); out.textContent = state.settings.fontSize; });
+      plus.addEventListener('click', function () { setFont(1); out.textContent = state.settings.fontSize; });
+      fg.append(minus, out, plus);
+      fontRow.appendChild(fg);
+      sheet.appendChild(fontRow);
+      seg('Theme', [['system', 'Auto'], ['dark', 'Dark'], ['light', 'Light']], state.settings.theme, function (v) { setSetting('theme', v); });
+      seg('Word wrap', [[false, 'Off'], [true, 'On']], state.settings.wrap, function (v) { setSetting('wrap', v); });
+      seg('Indent', [[2, '2'], [4, '4']], state.settings.tabSize, function (v) { setSetting('tabSize', v); });
+      seg('Key row', [[true, 'Show'], [false, 'Hide']], state.settings.keys, function (v) { setSetting('keys', v); });
+      var menu = h('div', 'menu');
+      [
+        { label: 'Command palette', icon: ICON.cmd, run: function () { openPalette('>'); } },
+        { label: 'Import files or a ZIP', icon: ICON.import, run: function () { importInto(''); } },
+        canDownload ? { label: 'Export project as ZIP', icon: ICON.zip, run: exportZip } : null,
+        state.active ? { label: 'Copy current file', icon: ICON.copy, run: function () { copyText(cm.getValue(), 'Copied ' + baseOf(state.active)); } } : null,
+        { label: 'Reset to starter project', icon: ICON.reset, danger: true, run: resetProject }
+      ].forEach(function (it) {
+        if (!it) return;
+        var b = h('button', it.danger ? 'danger' : null);
+        b.type = 'button';
+        b.innerHTML = it.icon;
+        b.appendChild(document.createTextNode(it.label));
+        b.addEventListener('click', function () { closeSheet(); it.run(); });
+        menu.appendChild(b);
+      });
+      sheet.appendChild(menu);
+      var count = Object.keys(state.files).length;
+      sheet.appendChild(h('p', 'note', count + (count === 1 ? ' file' : ' files') + ' saved in this browser. Clearing site data or private browsing will erase them.'));
+    });
+  }
+  function resetProject() {
+    confirmSheet({ title: 'Reset to the starter project?', body: 'All your files here will be replaced with the sample files. Export a ZIP first if you want to keep them.', ok: 'Reset' }).then(function (yes) {
+      if (!yes) return;
+      var settings = state.settings;
+      state = defaultState();
+      state.settings = settings;
+      docs.clear();
+      showEditor(state.active); renderTabs(); renderTree(); applySettings(); save();
+      toast('Starter project restored');
+    });
+  }
+
+  /* ---------- Find and replace ---------- */
+  var marks = [];
+  function clearMarks() { marks.forEach(function (m) { m.clear(); }); marks = []; }
+  function query() { return $('#findInput').value; }
+  function highlightMatches() {
+    clearMarks();
+    var q = query();
+    if (!q || !state.active) { $('#findCount').textContent = ''; return 0; }
+    var cur = cm.getSearchCursor(q, CodeMirror.Pos(cm.firstLine(), 0), { caseFold: true });
+    var n = 0;
+    cm.operation(function () {
+      while (cur.findNext()) {
+        if (n < 2000) marks.push(cm.markText(cur.from(), cur.to(), { className: 'cm-searching' }));
+        n++;
+        if (n > 20000) break;
+      }
+    });
+    $('#findCount').textContent = n ? n + (n === 1 ? ' match' : ' found') : 'None';
+    return n;
+  }
+  function findStep(back) {
+    var q = query();
+    if (!q || !state.active) return false;
+    var start = back ? cm.getCursor('from') : cm.getCursor('to');
+    var cur = cm.getSearchCursor(q, start, { caseFold: true });
+    if (!cur.find(back)) {
+      cur = cm.getSearchCursor(q, back ? CodeMirror.Pos(cm.lastLine()) : CodeMirror.Pos(cm.firstLine(), 0), { caseFold: true });
+      if (!cur.find(back)) return false;
+    }
+    cm.setSelection(cur.from(), cur.to());
+    cm.scrollIntoView({ from: cur.from(), to: cur.to() }, 80);
+    return true;
+  }
+  function openFind() {
+    if (!state.active) return;
+    var bar = $('#findbar');
+    bar.hidden = false;
+    var sel = cm.getSelection();
+    if (sel && sel.indexOf('\n') < 0) $('#findInput').value = sel;
+    var input = $('#findInput');
+    input.focus(); input.select();
+    highlightMatches();
+  }
+  function closeFind() { $('#findbar').hidden = true; clearMarks(); cm.focus(); }
+  $('#findInput').addEventListener('input', function () { if (highlightMatches()) { cm.setCursor(cm.getCursor('from')); findStep(false); } });
+  $('#findInput').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); findStep(e.shiftKey); }
+    if (e.key === 'Escape') closeFind();
+  });
+  $('#findNext').addEventListener('click', function () { findStep(false); });
+  $('#findPrev').addEventListener('click', function () { findStep(true); });
+  $('#findClose').addEventListener('click', closeFind);
+  $('#findToggle').addEventListener('click', function () {
+    var r = $('#replaceRow'); r.hidden = !r.hidden;
+    if (!r.hidden) $('#replaceInput').focus();
+  });
+  $('#replaceOne').addEventListener('click', function () {
+    var q = query(); if (!q) return;
+    if (cm.getSelection().toLowerCase() === q.toLowerCase()) cm.replaceSelection($('#replaceInput').value, 'end');
+    findStep(false);
+    highlightMatches();
+  });
+  $('#replaceAll').addEventListener('click', function () {
+    var q = query(); if (!q) return;
+    var rep = $('#replaceInput').value, n = 0;
+    cm.operation(function () {
+      var cur = cm.getSearchCursor(q, CodeMirror.Pos(cm.firstLine(), 0), { caseFold: true });
+      while (cur.findNext()) { cur.replace(rep); n++; }
+    });
+    highlightMatches();
+    toast(n ? 'Replaced ' + n : 'No matches');
+  });
+
+  /* ---------- Coding key row ---------- */
+  var PAIRS = { '(': ')', '[': ']', '{': '}', '"': '"', "'": "'", '`': '`', '<': '>' };
+  var KEYS = [
+    { l: 'Tab', a: tabKey, wide: true },
+    { l: '←', a: 'goCharLeft', rep: true, aria: 'Left' },
+    { l: '↑', a: 'goLineUp', rep: true, aria: 'Up' },
+    { l: '↓', a: 'goLineDown', rep: true, aria: 'Down' },
+    { l: '→', a: 'goCharRight', rep: true, aria: 'Right' },
+    '{', '}', '(', ')', '[', ']', '<', '>', '=', ';', ':', '"', "'", '`', '/', '\\', '|', '&', '!', '-', '+', '*', '_', '$', '#', '%', '.', ',', '?', '@', '~', '^',
+    { l: 'Undo', a: 'undo', wide: true, rep: true },
+    { l: 'Redo', a: 'redo', wide: true, rep: true },
+    { l: '//', a: function (ed) { ed.toggleComment(); }, aria: 'Toggle comment' },
+    { l: 'Outdent', a: 'indentLess', wide: true },
+    { l: 'Line ↑', a: 'goLineStartSmart', wide: true, aria: 'Start of line' },
+    { l: 'Line ↓', a: 'goLineEnd', wide: true, aria: 'End of line' },
+    { l: 'Select all', a: 'selectAll', wide: true }
+  ];
+  function doKey(k) {
+    if (!state.active) return;
+    if (typeof k === 'string') {
+      if (PAIRS[k] && cm.somethingSelected()) {
+        var sels = cm.getSelections().map(function (s) { return k + s + PAIRS[k]; });
+        cm.replaceSelections(sels, 'around');
+      } else cm.replaceSelection(k, 'end');
+    } else if (typeof k.a === 'string') cm.execCommand(k.a);
+    else k.a(cm);
+    if (!cm.hasFocus()) cm.focus();
+  }
+  (function buildKeys() {
+    var bar = $('#keys');
+    KEYS.forEach(function (k) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.tabIndex = -1;
+      b.className = 'key' + (k.wide ? ' wide' : '');
+      b.textContent = typeof k === 'string' ? k : k.l;
+      if (k.aria) b.setAttribute('aria-label', k.aria);
+      var sx = 0, sy = 0, moved = false, fired = false, t1 = null, t2 = null;
+      function stop() { clearTimeout(t1); clearInterval(t2); t1 = t2 = null; b.classList.remove('pressed'); }
+      b.addEventListener('touchstart', function (e) {
+        var t = e.touches[0]; sx = t.clientX; sy = t.clientY; moved = false; fired = false;
+        b.classList.add('pressed');
+        if (k.rep) t1 = setTimeout(function () { fired = true; doKey(k); t2 = setInterval(function () { doKey(k); }, 70); }, 380);
+      }, { passive: true });
+      b.addEventListener('touchmove', function (e) {
+        var t = e.touches[0];
+        if (Math.abs(t.clientX - sx) > 8 || Math.abs(t.clientY - sy) > 8) { moved = true; stop(); }
+      }, { passive: true });
+      b.addEventListener('touchend', function (e) {
+        stop();
+        if (moved) return;
+        e.preventDefault();
+        if (!fired) doKey(k);
+      });
+      b.addEventListener('touchcancel', stop);
+      b.addEventListener('mousedown', function (e) { e.preventDefault(); });
+      b.addEventListener('click', function () { doKey(k); });
+      bar.appendChild(b);
+    });
+  })();
+
+  /* ---------- Command palette ---------- */
+  function commands() {
+    return [
+      { label: 'New File…', run: function () { newFile(state.active ? parentOf(state.active) : ''); } },
+      { label: 'New Folder…', run: function () { newFolder(''); } },
+      { label: 'Find and Replace', run: openFind },
+      { label: 'Go to Line…', run: function () { setTimeout(function () { openPalette(':'); }, 0); } },
+      { label: 'Run Preview', run: run },
+      { label: 'Toggle Line Comment', run: function () { cm.toggleComment(); } },
+      { label: 'Toggle Word Wrap', run: function () { setSetting('wrap', !state.settings.wrap); toast('Word wrap ' + (state.settings.wrap ? 'on' : 'off')); } },
+      { label: 'Toggle Key Row', run: function () { setSetting('keys', !state.settings.keys); } },
+      { label: 'Increase Text Size', run: function () { setFont(1); } },
+      { label: 'Decrease Text Size', run: function () { setFont(-1); } },
+      { label: 'Theme: Dark', run: function () { setSetting('theme', 'dark'); } },
+      { label: 'Theme: Light', run: function () { setSetting('theme', 'light'); } },
+      { label: 'Theme: Match System', run: function () { setSetting('theme', 'system'); } },
+      { label: 'Indent with 2 Spaces', run: function () { setSetting('tabSize', 2); } },
+      { label: 'Indent with 4 Spaces', run: function () { setSetting('tabSize', 4); } },
+      { label: 'Copy Current File', run: function () { if (state.active) copyText(cm.getValue(), 'Copied ' + baseOf(state.active)); } },
+      { label: 'Import Files…', run: function () { importInto(''); } },
+      canDownload ? { label: 'Export Project as ZIP', run: exportZip } : null,
+      { label: 'Close All Tabs', run: function () { state.open = []; state.active = null; showEditor(null); renderTabs(); renderTree(); saveSoon(); } },
+      { label: 'Show Explorer', run: openDrawer },
+      { label: 'Settings', run: openSettings },
+      { label: 'Reset to Starter Project…', run: resetProject }
+    ].filter(Boolean);
+  }
+  function fuzzy(q, text) {
+    q = q.toLowerCase(); text = text.toLowerCase();
+    if (!q) return 1;
+    var idx = text.indexOf(q);
+    if (idx >= 0) return 1000 - idx - text.length * 0.01;
+    var j = 0, score = 0, last = -1;
+    for (var i = 0; i < text.length && j < q.length; i++) {
+      if (text[i] === q[j]) { score += (i === last + 1) ? 5 : 1; last = i; j++; }
+    }
+    return j === q.length ? score : -1;
+  }
+  var pal = null;
+  function openPalette(prefix) {
+    closePalette();
+    var wrapEl = h('div', 'palette-wrap');
+    var box = h('div', 'palette');
+    box.setAttribute('role', 'dialog');
+    box.setAttribute('aria-label', 'Search files and commands');
+    var input = h('input');
+    input.id = 'paletteInput';
+    input.type = 'text';
+    input.autocomplete = 'off';
+    input.setAttribute('autocapitalize', 'off');
+    input.spellcheck = false;
+    input.placeholder = 'Search files, > for commands, : for line';
+    input.value = prefix || '';
+    var list = h('div', 'list');
+    list.setAttribute('role', 'listbox');
+    var hint = h('div', 'hint');
+    box.append(input, list, hint);
+    wrapEl.appendChild(box);
+    document.body.appendChild(wrapEl);
+    wrapEl.addEventListener('click', function (e) { if (e.target === wrapEl) closePalette(); });
+    var items = [], sel = 0;
+    function render() {
+      var v = input.value;
+      list.textContent = '';
+      items = [];
+      if (v.charAt(0) === ':') {
+        var n = parseInt(v.slice(1), 10);
+        var total = state.active ? cm.lineCount() : 0;
+        if (!state.active) hint.textContent = 'Open a file first.';
+        else if (n > 0) { items.push({ label: 'Go to line ' + Math.min(n, total), sub: 'of ' + total, run: function () { var ln = Math.min(n, total) - 1; cm.setCursor(ln, 0); cm.scrollIntoView(null, cm.getScrollInfo().clientHeight / 3); cm.focus(); } }); hint.textContent = ''; }
+        else hint.textContent = 'Type a line number between 1 and ' + total + '.';
+      } else if (v.charAt(0) === '>') {
+        var q = v.slice(1).trim();
+        items = commands().map(function (c) { return { label: c.label, run: c.run, s: fuzzy(q, c.label) }; })
+          .filter(function (c) { return c.s >= 0; }).sort(function (a, b) { return q ? b.s - a.s : 0; });
+        hint.textContent = items.length ? '' : 'No matching commands.';
+      } else {
+        var fq = v.trim();
+        items = Object.keys(state.files).map(function (p) {
+          var bs = fuzzy(fq, baseOf(p));
+          return { label: baseOf(p), sub: parentOf(p), path: p, s: bs >= 0 ? bs + 50 : fuzzy(fq, p), run: function () { openFile(p); } };
+        }).filter(function (c) { return c.s >= 0; })
+          .sort(function (a, b) { return fq ? b.s - a.s : byName(a.path, b.path); }).slice(0, 60);
+        hint.textContent = items.length ? 'Tip: type > for commands, : to jump to a line' : 'No matching files.';
+      }
+      sel = Math.min(sel, Math.max(0, items.length - 1));
+      items.forEach(function (it, i) {
+        var b = h('button', 'item' + (i === sel ? ' sel' : ''));
+        b.type = 'button';
+        b.setAttribute('role', 'option');
+        b.appendChild(document.createTextNode(it.label));
+        if (it.sub) b.appendChild(h('small', null, it.sub));
+        b.addEventListener('click', function () { closePalette(); it.run(); });
+        list.appendChild(b);
+      });
+    }
+    input.addEventListener('input', function () { sel = 0; render(); });
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowDown') { e.preventDefault(); sel = Math.min(items.length - 1, sel + 1); render(); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); sel = Math.max(0, sel - 1); render(); }
+      else if (e.key === 'Enter') { e.preventDefault(); var it = items[sel]; closePalette(); if (it) it.run(); }
+      else if (e.key === 'Escape') closePalette();
+    });
+    pal = wrapEl;
+    render();
+    setTimeout(function () { input.focus(); input.setSelectionRange(input.value.length, input.value.length); }, 20);
+  }
+  function closePalette() { if (pal) { pal.remove(); pal = null; } }
+
+  /* ---------- Run and preview ---------- */
+  var BRIDGE = '<script>(function(){' +
+    'var send=function(t,a){try{parent.postMessage({__pocket:1,type:t,args:a},"*")}catch(e){}};' +
+    'var fmt=function(v){try{if(v instanceof Error)return v.stack||String(v);if(typeof v==="function")return String(v);if(typeof v==="object"&&v!==null){var s=JSON.stringify(v,null,2);return s===undefined?String(v):s}return String(v)}catch(e){return String(v)}};' +
+    '["log","info","warn","error","debug"].forEach(function(k){var o=console[k];console[k]=function(){send(k,[].map.call(arguments,fmt));if(o)o.apply(console,arguments)}});' +
+    'window.addEventListener("error",function(e){send("error",[(e.message||"Error")+(e.lineno?" (line "+e.lineno+")":"")])});' +
+    'window.addEventListener("unhandledrejection",function(e){send("error",["Unhandled promise rejection: "+fmt(e.reason)])});' +
+    'window.addEventListener("message",function(e){var d=e.data;if(!d||typeof d.__pocketEval!=="string")return;try{var r=(0,eval)(d.__pocketEval);send("result",[fmt(r)])}catch(err){send("error",[String(err)])}});' +
+    '})();<\/script>';
+
+  function escHtml(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function pageShell(title, body, css) {
+    return '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' + escHtml(title) + '</title>' + BRIDGE +
+      '<style>body{font:16px/1.6 system-ui,sans-serif;margin:0;padding:20px 18px 40px;color:#1d232c;background:#fff;max-width:72ch}' + (css || '') + '</style></head><body>' + body + '</body></html>';
+  }
+  function findHtmlFor(path) {
+    if (path && /\.html?$/i.test(path)) return path;
+    var dir = path ? parentOf(path) : '';
+    while (true) {
+      var cand = join(dir, 'index.html');
+      if (cand in state.files) return cand;
+      if (!dir) break;
+      dir = parentOf(dir);
+    }
+    var any = Object.keys(state.files).filter(function (p) { return /\.html?$/i.test(p); }).sort(byName)[0];
+    return any || null;
+  }
+  function buildPreview() {
+    var a = state.active;
+    if (a && /\.(md|markdown)$/i.test(a)) {
+      var md = state.files[a] || '';
+      var html = window.marked ? window.marked.parse(md) : '<pre>' + escHtml(md) + '</pre>';
+      return { label: a + ' (Markdown preview)', html: pageShell(baseOf(a), html,
+        'code,pre{font-family:ui-monospace,Menlo,monospace;background:#f2f4f7;border-radius:6px}code{padding:1px 5px}pre{padding:12px;overflow:auto}pre code{padding:0}h1,h2{border-bottom:1px solid #e3e7ec;padding-bottom:.25em}a{color:#1f6fd1}img{max-width:100%}blockquote{margin:0;padding-left:14px;border-left:3px solid #d0d6de;color:#55606e}table{border-collapse:collapse}td,th{border:1px solid #d8dde3;padding:4px 8px}') };
+    }
+    if (a && /\.py$/i.test(a)) {
+      return { label: a, html: pageShell('Python', '<h2>Python can’t run here yet</h2><p>Pocket Code runs HTML, CSS and JavaScript in the browser. Your Python file is saved and you can keep editing it.</p>') };
+    }
+    if (a && /\.(m?js)$/i.test(a) && !findHtmlFor(a)) {
+      return { label: a, html: pageShell(baseOf(a), '<p style="color:#5f6673">Running ' + escHtml(a) + '. Output appears in the Console tab.</p><script>\n' + state.files[a].replace(/<\/script/gi, '<\\/script') + '\n<\/script>') };
+    }
+    var htmlPath = findHtmlFor(a);
+    if (!htmlPath) {
+      return { label: 'Nothing to run', html: pageShell('Nothing to run', '<h2>Nothing to run yet</h2><p>Create an <code>index.html</code> file, or open a JavaScript or Markdown file, then tap Run.</p>') };
+    }
+    var dir = parentOf(htmlPath);
+    var src = state.files[htmlPath] || '';
+    src = src.replace(/<link\b[^>]*>/gi, function (tag) {
+      if (!/rel\s*=\s*["']?stylesheet/i.test(tag)) return tag;
+      var m = tag.match(/href\s*=\s*["']([^"']+)["']/i);
+      var p = m && resolvePath(dir, m[1]);
+      if (!p || !(p in state.files)) return tag;
+      return '<style data-file="' + escHtml(p) + '">\n' + state.files[p] + '\n</style>';
+    });
+    src = src.replace(/<script\b([^>]*?)\bsrc\s*=\s*["']([^"']+)["']([^>]*)>\s*<\/script>/gi, function (all, pre, url, post) {
+      var p = resolvePath(dir, url);
+      if (!p || !(p in state.files)) return all;
+      return '<script' + pre + post + '>\n' + state.files[p].replace(/<\/script/gi, '<\\/script') + '\n<\/script>';
+    });
+    if (/<head[^>]*>/i.test(src)) src = src.replace(/<head[^>]*>/i, function (m) { return m + BRIDGE; });
+    else if (/<html[^>]*>/i.test(src)) src = src.replace(/<html[^>]*>/i, function (m) { return m + BRIDGE; });
+    else src = BRIDGE + src;
+    return { label: htmlPath, html: src };
+  }
+
+  var consoleLines = [], errCount = 0;
+  function renderConsole() {
+    var box = $('#console');
+    box.textContent = '';
+    if (!consoleLines.length) { box.appendChild(h('div', 'none', 'Nothing logged yet. console.log output and errors from your page show up here.')); }
+    consoleLines.forEach(function (l) { box.appendChild(h('div', 'ln ' + l.type, l.text)); });
+    box.scrollTop = box.scrollHeight;
+    var badge = $('#errBadge');
+    badge.hidden = errCount === 0;
+    badge.textContent = errCount;
+  }
+  function logLine(type, text) {
+    if (type === 'debug' || type === 'info') type = 'log';
+    consoleLines.push({ type: type, text: text });
+    if (consoleLines.length > 500) consoleLines.shift();
+    if (type === 'error') errCount++;
+    renderConsole();
+  }
+  window.addEventListener('message', function (e) {
+    var frame = $('#frame');
+    if (!frame || e.source !== frame.contentWindow) return;
+    var d = e.data;
+    if (!d || d.__pocket !== 1) return;
+    logLine(d.type, (d.args || []).join(' '));
+  });
+
+  function run() {
+    save();
+    var built = buildPreview();
+    consoleLines = []; errCount = 0; renderConsole();
+    $('#pFile').textContent = built.label;
+    var frame = $('#frame');
+    frame.srcdoc = built.html;
+    $('#preview').hidden = false;
+    if (document.activeElement) document.activeElement.blur();
+    showPreviewTab('preview');
+  }
+  function showPreviewTab(which) {
+    $('#ptPreview').classList.toggle('on', which === 'preview');
+    $('#ptConsole').classList.toggle('on', which === 'console');
+    $('#pPreviewBody').hidden = which !== 'preview';
+    $('#pConsoleBody').hidden = which !== 'console';
+  }
+  $('#ptPreview').addEventListener('click', function () { showPreviewTab('preview'); });
+  $('#ptConsole').addEventListener('click', function () { showPreviewTab('console'); });
+  $('#pReload').addEventListener('click', run);
+  $('#pClose').addEventListener('click', function () { $('#preview').hidden = true; $('#frame').srcdoc = ''; });
+  $('#consoleForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var v = $('#consoleInput').value;
+    if (!v.trim()) return;
+    logLine('input', '› ' + v);
+    try { $('#frame').contentWindow.postMessage({ __pocketEval: v }, '*'); } catch (err) { logLine('error', String(err)); }
+    $('#consoleInput').value = '';
+  });
+
+  /* ---------- Toast ---------- */
+  var toastTimer = null;
+  function toast(msg) {
+    var t = $('#toast');
+    t.textContent = msg; t.hidden = false; t.style.opacity = '1';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.style.opacity = '0'; setTimeout(function () { t.hidden = true; }, 220); }, 2200);
+  }
+
+  /* ---------- Keyboard-aware sizing ---------- */
+  var app = $('#app');
+  var fitRaf = 0;
+  function fit() {
+    cancelAnimationFrame(fitRaf);
+    fitRaf = requestAnimationFrame(function () {
+      var vv = window.visualViewport;
+      if (vv) {
+        app.style.height = vv.height + 'px';
+        app.style.top = vv.offsetTop + 'px';
+        app.classList.toggle('kb', window.innerHeight - vv.height > 140 || (screen.height - vv.height > 260 && cm.hasFocus()));
+      }
+      cm.refresh();
+      if (cm.hasFocus()) cm.scrollIntoView(null, 40);
+    });
+  }
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', fit);
+    window.visualViewport.addEventListener('scroll', fit);
+  }
+  window.addEventListener('resize', fit);
+  cm.on('focus', fit);
+  cm.on('blur', fit);
+
+  /* ---------- Wiring ---------- */
+  $('#btnFiles').addEventListener('click', openDrawer);
+  $('#drawerScrim').addEventListener('click', closeDrawer);
+  $('#treeClose').addEventListener('click', closeDrawer);
+  $('#treeNewFile').addEventListener('click', function () { newFile(''); });
+  $('#treeNewFolder').addEventListener('click', function () { newFolder(''); });
+  $('#treeImport').addEventListener('click', function () { importInto(''); });
+  $('#btnTitle').addEventListener('click', function () { openPalette(''); });
+  $('#btnFind').addEventListener('click', function () { if ($('#findbar').hidden) openFind(); else closeFind(); });
+  $('#btnRun').addEventListener('click', run);
+  $('#btnMore').addEventListener('click', openSettings);
+  $('#emptyNew').addEventListener('click', function () { newFile(''); });
+  $('#emptyFiles').addEventListener('click', openDrawer);
+  $('#stPos').addEventListener('click', function () { openPalette(':'); });
+  $('#stIndent').addEventListener('click', function () { setSetting('tabSize', state.settings.tabSize === 2 ? 4 : 2); toast('Indent with ' + state.settings.tabSize + ' spaces'); });
+  $('#stSave').addEventListener('click', function () { if (save()) toast('Saved in this browser'); else toast('Saving is blocked here, so changes last only until you close this page.'); });
+  $('#stLang').addEventListener('click', function () { openPalette('>'); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') return;
+    if (pal) closePalette();
+    else if (sheetOpen) closeSheet();
+    else if (!$('#preview').hidden) $('#pClose').click();
+    else if (drawer.classList.contains('open')) closeDrawer();
+  });
+  if (!canDownload) $('#storageNote').innerHTML = 'Files save automatically <strong>in this browser</strong> on this device. Use Copy contents on a file to keep a backup.';
+
+  applySettings();
+  showEditor(state.active);
+  renderTabs();
+  renderTree();
+  fit();
+  if (!save()) setSaveLabel('Not saved');
+
+  if ('serviceWorker' in navigator && isTop && /^https?:$/.test(location.protocol)) {
+    navigator.serviceWorker.register('sw.js').catch(function () {});
+  }
+})();
+</script>
+<!--ARTIFACT-END-->
+</body>
+</html>
