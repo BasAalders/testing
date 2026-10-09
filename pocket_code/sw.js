@@ -1,5 +1,5 @@
 // Offline support: cache the app shell and the CDN libraries it loads.
-const CACHE = 'pocket-code-v1';
+const CACHE = 'pocket-code-v2';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', (event) => {

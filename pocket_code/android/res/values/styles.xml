@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="workbench">#181818</color>
+    <color name="editor">#1f1f1f</color>
+    <style name="AppTheme" parent="android:Theme.Material.NoActionBar">
+        <item name="android:statusBarColor">@color/workbench</item>
+        <item name="android:navigationBarColor">@color/workbench</item>
+        <item name="android:windowBackground">@color/editor</item>
+        <item name="android:colorAccent">#0078d4</item>
+    </style>
+</resources>
